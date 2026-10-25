@@ -486,7 +486,7 @@
                                                 <input class="form-check-input" type="radio"
                                                        name="station[realtimeUTC]"
                                                        id="station-realtimeUTC-0" value="0"
-                                                    <?= ($config->station->realtimeUTC === true) ? 'checked="checked"' : false; ?>
+                                                    <?= ($config->station->realtimeUTC === false) ? 'checked="checked"' : false; ?>
                                                 >
                                                 <label class="form-check-label btn btn-danger btn-sm"
                                                        for="station-realtimeUTC-0"><strong>Disabled</strong></label>
@@ -495,7 +495,7 @@
                                                 <input class="form-check-input" type="radio"
                                                        name="station[realtimeUTC]"
                                                        id="station-realtimeUTC-1" value="1"
-                                                    <?= ($config->station->realtimeUTC === false) ? 'checked="checked"' : false; ?>
+                                                    <?= ($config->station->realtimeUTC === true) ? 'checked="checked"' : false; ?>
                                                 >
                                                 <label class="form-check-label btn btn-success btn-sm"
                                                        for="station-realtimeUTC-1">Enabled</label>
