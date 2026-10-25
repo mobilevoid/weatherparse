@@ -25,8 +25,9 @@
  *
  * The usual setup redirects the AcuRite API hostname to this server (an /etc/hosts entry or a DNS override), which is
  * how the readings arrive here in the first place. Forwarding by name would then loop back to this server. So the
- * forwarder asks DNS directly for the real address (dns_get_record does not read /etc/hosts), refuses any answer that
- * points at this server, and connects to that address while keeping the real hostname for TLS.
+ * forwarder looks the name up in DNS, refuses any answer that points at this server, and connects to that address
+ * while keeping the real hostname for TLS. When the server's own resolver answers with this server (for example a
+ * local dnsmasq that reads /etc/hosts), it asks public resolvers (1.1.1.1, 8.8.8.8) directly.
  */
 
 /**
@@ -51,22 +52,94 @@ function myacuriteLocalAddresses(): array
 }
 
 /**
- * Public IPv4 address of a hostname from DNS, never from /etc/hosts, and never one of this server's own addresses.
- * @return string|null null when DNS has no usable answer
+ * IPv4 addresses for a hostname from one DNS server, by a plain UDP query (RFC 1035), so no local resolver,
+ * /etc/hosts or DNS override is involved.
+ * @return string[]
+ */
+function myacuriteDnsQuery(string $host, string $server, float $timeout = 3.0): array
+{
+    $id = random_int(0, 0xFFFF);
+    $packet = pack('nnnnnn', $id, 0x0100, 1, 0, 0, 0);
+    foreach (explode('.', trim($host, '.')) as $label) {
+        if ($label === '' || strlen($label) > 63) {
+            return [];
+        }
+        $packet .= chr(strlen($label)) . $label;
+    }
+    $packet .= chr(0) . pack('nn', 1, 1); // type A, class IN
+
+    $sock = @fsockopen('udp://' . $server, 53, $errno, $errstr, $timeout);
+    if (!$sock) {
+        return [];
+    }
+    stream_set_timeout($sock, (int)$timeout, (int)(($timeout - (int)$timeout) * 1e6));
+    fwrite($sock, $packet);
+    $response = fread($sock, 1500);
+    fclose($sock);
+    if (!is_string($response) || strlen($response) < 12) {
+        return [];
+    }
+    $header = unpack('nid/nflags/nqd/nan', substr($response, 0, 8));
+    if ($header['id'] !== $id || ($header['flags'] & 0x000F) !== 0) {
+        return [];
+    }
+    $pos = 12;
+    // Skip the question: name labels (or a pointer), type and class
+    for ($q = 0; $q < $header['qd']; $q++) {
+        $pos = myacuriteDnsSkipName($response, $pos) + 4;
+    }
+    $ips = [];
+    for ($a = 0; $a < $header['an'] && $pos + 10 <= strlen($response); $a++) {
+        $pos = myacuriteDnsSkipName($response, $pos);
+        $rr = unpack('ntype/nclass/Nttl/nlen', substr($response, $pos, 10));
+        $pos += 10;
+        if ($rr['type'] === 1 && $rr['len'] === 4) {
+            $ips[] = inet_ntop(substr($response, $pos, 4));
+        }
+        $pos += $rr['len'];
+    }
+    return $ips;
+}
+
+/** Position after a DNS name (a run of labels ending in 0, or a 2-byte compression pointer). */
+function myacuriteDnsSkipName(string $msg, int $pos): int
+{
+    while ($pos < strlen($msg)) {
+        $len = ord($msg[$pos]);
+        if ($len === 0) {
+            return $pos + 1;
+        }
+        if (($len & 0xC0) === 0xC0) {
+            return $pos + 2;
+        }
+        $pos += $len + 1;
+    }
+    return $pos;
+}
+
+/**
+ * Public IPv4 address of a hostname, never one of this server's own addresses.
+ * Tries the system resolver first, then public resolvers directly.
+ * @return string|null null when no usable answer
  */
 function myacuriteResolve(string $host): ?string
 {
-    $records = @dns_get_record($host, DNS_A);
-    if (!is_array($records)) {
-        return null;
-    }
     $local = myacuriteLocalAddresses();
-    foreach ($records as $record) {
-        $ip = $record['ip'] ?? '';
-        if ($ip === '' || in_array($ip, $local, true) || str_starts_with($ip, '127.')) {
-            continue;
+    $usable = fn(string $ip) => $ip !== '' && !in_array($ip, $local, true) && !str_starts_with($ip, '127.')
+        && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+
+    $records = @dns_get_record($host, DNS_A);
+    foreach (is_array($records) ? $records : [] as $record) {
+        if ($usable($record['ip'] ?? '')) {
+            return $record['ip'];
         }
-        return $ip;
+    }
+    foreach (['1.1.1.1', '8.8.8.8'] as $server) {
+        foreach (myacuriteDnsQuery($host, $server) as $ip) {
+            if ($usable($ip)) {
+                return $ip;
+            }
+        }
     }
     return null;
 }
@@ -92,7 +165,7 @@ function myacuriteForward(string $baseUrl, string $pathAndQuery, string $postBod
 
     $ip = myacuriteResolve($host);
     if ($ip === null) {
-        syslog(LOG_WARNING, "(ACCESS){MyAcuRite}[WARN]: $host has no public DNS answer (or only points at this server); not forwarding");
+        syslog(LOG_WARNING, "(ACCESS){MyAcuRite}[WARN]: $host has no public address in DNS (system resolver and 1.1.1.1/8.8.8.8); not forwarding");
         return false;
     }
 

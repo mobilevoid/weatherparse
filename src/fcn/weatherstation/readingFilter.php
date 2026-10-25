@@ -28,10 +28,12 @@
  *
  * Rules (station.spike_filter = true):
  *  - outside -60 F .. 140 F: rejected
- *  - compared with the last stored temperature: if that is at most 30 minutes old, the change may not exceed
- *    station.spike_max_change F (default 10) per 5 minutes elapsed, never less than spike_max_change itself
- *  - the last stored temperature is older than 30 minutes (or there is none): any in-range value is accepted, so a
- *    real change can never lock the station out
+ *  - compared with the median of the temperatures stored in the 30 minutes before it: the change may not exceed
+ *    station.spike_max_change F (default 10) per 5 minutes since the newest of them, never less than
+ *    spike_max_change itself. The median, not the last value, so one bad reading that was stored cannot shift the
+ *    reference and cause good readings to be rejected.
+ *  - nothing stored in the last 30 minutes: any in-range value is accepted, so a real change can never lock the
+ *    station out
  */
 
 const SPIKE_FILTER_MIN_F = -60.0;
@@ -57,26 +59,36 @@ function temperatureReadingAccepted(mysqli $conn, object $config, float $tempF, 
         return false;
     }
 
-    $result = mysqli_query($conn, "SELECT `tempF`, `timestamp` FROM `temperature` ORDER BY `timestamp` DESC LIMIT 1");
-    $last = $result ? mysqli_fetch_assoc($result) : null;
-    if (!$last || $last['tempF'] === null) {
+    $since = date('Y-m-d H:i:s', strtotime($timestamp) - SPIKE_FILTER_WINDOW_MINUTES * 60);
+    $sinceSql = mysqli_real_escape_string($conn, $since);
+    $untilSql = mysqli_real_escape_string($conn, $timestamp);
+    $result = mysqli_query($conn, "SELECT `tempF`, `timestamp` FROM `temperature` WHERE `timestamp` >= '$sinceSql' AND `timestamp` < '$untilSql' ORDER BY `timestamp` DESC LIMIT 12");
+    $recent = [];
+    $newest = null;
+    while ($result && ($row = mysqli_fetch_assoc($result))) {
+        if ($row['tempF'] === null) {
+            continue;
+        }
+        $recent[] = (float)$row['tempF'];
+        $newest = $newest ?? $row['timestamp'];
+    }
+    if (!$recent) {
         return true;
     }
-
-    $minutes = (strtotime($timestamp) - strtotime($last['timestamp'])) / 60;
-    if ($minutes < 0 || $minutes > SPIKE_FILTER_WINDOW_MINUTES) {
-        return true;
-    }
+    sort($recent);
+    $mid = intdiv(count($recent), 2);
+    $reference = count($recent) % 2 ? $recent[$mid] : ($recent[$mid - 1] + $recent[$mid]) / 2;
+    $minutes = max(5, (strtotime($timestamp) - strtotime($newest)) / 60);
 
     $maxChangePer5 = (float)($config->station->spike_max_change ?? 10);
     if ($maxChangePer5 <= 0) {
         return true;
     }
     $allowed = max($maxChangePer5, $maxChangePer5 * $minutes / 5);
-    $change = abs($tempF - (float)$last['tempF']);
+    $change = abs($tempF - $reference);
     if ($change > $allowed) {
-        syslog(LOG_WARNING, sprintf("(ACCESS){%s}[FILTER]: Dropped temperature %.1f F (%.1f F from %.1f F %.0f min earlier; limit %.1f F)",
-            $label, $tempF, $change, (float)$last['tempF'], $minutes, $allowed));
+        syslog(LOG_WARNING, sprintf("(ACCESS){%s}[FILTER]: Dropped temperature %.1f F (%.1f F from the recent median %.1f F of %d readings; limit %.1f F)",
+            $label, $tempF, $change, $reference, count($recent), $allowed));
         return false;
     }
     return true;
