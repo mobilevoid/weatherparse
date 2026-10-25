@@ -39,10 +39,10 @@ switch ($config->version->app) {
         $config->version->app = '3.8.0';
         @$config->upload->mqtt = (object)array();
         @$config->upload->mqtt->enabled = false;
-        @$config->upload->mqtt->client = "acuparse";
+        @$config->upload->mqtt->client = "weatherparse";
         @$config->upload->mqtt->server = null;
         @$config->upload->mqtt->port = 1883;
-        @$config->upload->mqtt->topic = "acuparse";
+        @$config->upload->mqtt->topic = "weatherparse";
         @$config->upload->mqtt->username = null;
         @$config->upload->mqtt->password = null;
 

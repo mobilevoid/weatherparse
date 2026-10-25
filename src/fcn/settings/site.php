@@ -352,10 +352,8 @@
                     <div class="row">
                         <div class="col">
                             <h3>Check for Updates</h3>
-                            <p>Checking for updates sends a small <a target="_blank"
-                                                                     href="https://docs.acuparse.com/other/TELEMETRY">telemetry
-                                    packet</a> to Acuparse servers.<br>This data provides essential insight on
-                                the projects user base.</p>
+                            <p>Checks the public WeatherParse release list on GitHub once a day.<br>Nothing
+                                about your station or server is sent.</p>
                         </div>
                     </div>
                     <div class="row mb-2">
@@ -376,21 +374,6 @@
                             </div>
                         </div>
                     </div>
-                    <?php
-                    if ($config->site->updates === true) { ?>
-                    <div class="row">
-                        <div class="col">
-                            <p>View your install data stored on Acuparse servers.</p>
-                                <button type="button" id="telemetry"
-                                        class="btn btn-outline-secondary center-block mb-2"
-                                        onclick="window.open(
-                                                'https://version.acuparse.com/view/<?= $config->version->installHash ?>',
-                                                '_blank');">
-                                    <i class="fas fa-database" aria-hidden="true"></i> View Telemetry Data
-                                </button>
-                        </div>
-                    </div>
-                    <?php } ?>
                 </div>
             </section>
         </div>

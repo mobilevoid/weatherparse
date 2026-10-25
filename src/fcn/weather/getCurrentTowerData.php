@@ -57,7 +57,7 @@ class getCurrentTowerData
         $lastUpdate = mysqli_fetch_assoc(mysqli_query($conn,
             "SELECT `timestamp` FROM `tower_data`"));
         if (!isset($lastUpdate)) {
-            echo '<div class="col text-center alert alert-danger"><strong>No Tower Data Reported!</strong><br>Check your <a href="https://docs.acuparse.com/TROUBLESHOOTING/#logs">logs</a> for more details.</div>';
+            echo '<div class="col text-center alert alert-danger"><strong>No Tower Data Reported!</strong><br>Check your <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt">logs</a> for more details.</div>';
             exit();
         }
 

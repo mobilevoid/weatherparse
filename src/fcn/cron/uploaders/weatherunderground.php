@@ -46,7 +46,7 @@ if ($config->station->device === 0) {
         $wuQuery = $wuQuery . '&UV=' . $atlas->uvIndex;
     }
 }
-$wuQueryStatic = '&softwaretype=' . ucfirst($appInfo->name) . '&action=updateraw';
+$wuQueryStatic = '&softwaretype=' . 'WeatherParse' . '&action=updateraw';
 $wuQueryResult = file_get_contents(htmlentities($wuQueryUrl . $wuQuery . $wuQueryStatic));
 // Save to DB
 mysqli_query($conn, "INSERT INTO `wu_updates` (`query`,`result`) VALUES ('$wuQuery', '$wuQueryResult')");

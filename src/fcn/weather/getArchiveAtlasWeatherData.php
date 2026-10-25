@@ -131,7 +131,7 @@ class getArchiveAtlasWeatherData
                 $json_output = ['Status' => 'error', 'message' => 'No Atlas Archive Data Reported'];
                 echo json_encode($json_output);
             } else {
-                echo '<div class="col text-center alert alert-danger"><p><strong>No Atlas Archive Data Reported!</strong><br>Check that your Cron tasks are running! See your <a href="https://docs.acuparse.com/TROUBLESHOOTING/#logs">logs</a> for more details.</p></div>';
+                echo '<div class="col text-center alert alert-danger"><p><strong>No Atlas Archive Data Reported!</strong><br>Check that your Cron tasks are running! See your <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt">logs</a> for more details.</p></div>';
             }
             exit();
         }

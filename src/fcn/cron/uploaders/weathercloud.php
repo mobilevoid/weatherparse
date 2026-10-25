@@ -48,7 +48,7 @@ if ((strtotime($result['timestamp']) < strtotime('-10 minutes')) or ($count == 0
     if ($config->station->device === 0 && $config->station->primary_sensor === 0) {
         $wcQuery = $wcQuery . '&uvi=' . ($atlas->uvIndex * 10);
     }
-    $wcQueryStatic = '&softwareid=555e1df0d6eb' . '&software=' . $appInfo->name . '_v' . $config->version->app;
+    $wcQueryStatic = '&softwareid=555e1df0d6eb' . '&software=acuparse_v' . $config->version->app /* softwareid above is registered to Acuparse; keep its name */;
     $wcQueryResult = file_get_contents($wcQueryUrl . $wcQuery . $wcQueryStatic);
     // Save to DB
     mysqli_query($conn, "INSERT INTO `wc_updates` (`query`,`result`) VALUES ('$wcQuery', '$wcQueryResult')");

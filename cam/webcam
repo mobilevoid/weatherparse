@@ -117,11 +117,11 @@ function _cleanup() {
 }
 
 # Only one run at a time (a slow camera or cleanup must not overlap the next cron run).
-exec 9>/tmp/acuparse-webcam.lock
+exec 9>/tmp/weatherparse-webcam.lock
 flock -n 9 || { echo "Another webcam run is still busy; skipping"; exit 0; }
 
-# shellcheck source=/builds/acuparse/acuparse/cam/templates/config.env
-source /opt/acuparse/cam/config.env
+# shellcheck source=templates/config.env
+source /opt/weatherparse/cam/config.env
 
 # "webcam cleanup" only removes images older than KEEP_DAYS (run once a day from cron).
 if [ "$1" == 'cleanup' ]; then

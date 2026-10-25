@@ -71,7 +71,7 @@ if ((strtotime($result['timestamp']) < strtotime("-" . $config->upload->cwop->in
         syslog(LOG_ERR, "(EXTERNAL){CWOP}[ERROR]: $cwopSocket_errno ($cwopSocket_errstr)");
 
     } else {
-        $cwop_out = 'user ' . $config->upload->cwop->id . ' pass -1 vers ' . $appInfo->name . "\r" . $cwopQuery . '.' . ucfirst($appInfo->name) . "\r";
+        $cwop_out = 'user ' . $config->upload->cwop->id . ' pass -1 vers ' . 'WeatherParse' . "\r" . $cwopQuery . '.' . 'WeatherParse' . "\r";
         fwrite($cwopSocket, $cwop_out);
         fclose($cwopSocket);
     }

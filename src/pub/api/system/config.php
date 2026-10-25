@@ -42,7 +42,7 @@ include(APP_BASE_PATH . '/fcn/api/auth/getToken.php');
 // PHP Info
 if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true && $_SESSION['admin'] === true) {
     $env = getenv();
-    echo "<h1>Acuparse Data</h1><h2>Application Data</h2>";
+    echo "<h1>WeatherParse Data</h1><h2>Application Data</h2>";
     print("<pre>" . print_r($appInfo, true) . "</pre><h2>Configuration Data</h2>");
     print("<pre>" . print_r($config, true) . "</pre><h2>Environment</h2>");
     print("<pre>" . print_r($env, true) . "</pre>");

@@ -68,7 +68,7 @@
                             <input type="text" class="form-control"
                                    name="mysql[database]"
                                    id="mysql-database"
-                                   placeholder="acuparse"
+                                   placeholder="weatherparse"
                                    maxlength="35"
                                    value="<?= $config->mysql->database; ?>">
                         </div>
@@ -81,7 +81,7 @@
                             <input type="text" class="form-control"
                                    name="mysql[username]"
                                    id="mysql-username"
-                                   placeholder="acuparse.dbadmin"
+                                   placeholder="weatherparse.dbadmin"
                                    maxlength="35"
                                    value="<?= $config->mysql->username; ?>">
                         </div>
@@ -110,7 +110,7 @@
                     <div class="row">
                         <div class="col">
                             <h3>Database Trimming</h3>
-                            <p><a href="https://docs.acuparse.com/INSTALL/#database-trimming">Database Trimming</a>
+                            <p><a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt">Database Trimming</a>
                                 keeps your database tables clean.</p>
                         </div>
                     </div>

@@ -50,7 +50,7 @@ switch ($config->version->app) {
         unset($config->upload->myacurite->enabled);
         unset($config->upload->myacurite->url);
 
-        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Support for the AcuRite Access.<br> NOTICE: Apache rebuild required. See <a href="https://docs.acuparse.com/updates/from2_1">docs/updates/from2_1.md</a></li>';
+        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Support for the AcuRite Access.<br> NOTICE: Apache rebuild required. See <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/updates/from2_1.txt">docs/updates/from2_1.txt</a></li>';
 
     // Update from 2.2.0
     case '2.2.0':

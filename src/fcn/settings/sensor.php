@@ -339,7 +339,7 @@
                             <div class="row">
                                 <div class="col">
                                     <h3>Southern Hemisphere Support</h3>
-                                    <p><a href="https://docs.acuparse.com/INSTALL/#southern-hemisphere-support">See the
+                                    <p><a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt">See the
                                             docs</a> for more details.</p>
                                 </div>
                             </div>
@@ -383,9 +383,9 @@
                             <div class="row">
                                 <div class="col">
                                     <h3>Realtime Updates</h3>
-                                    <p><small><strong>(RTL Dongle and Acuparse Relay Service Required)</strong></small>
+                                    <p><small><strong>(RTL Dongle and RTL Relay Service Required)</strong></small>
                                     </p>
-                                    <p><a href="https://docs.acuparse.com/REALTIME/">See the docs</a> for more
+                                    <p><a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/REALTIME.txt">See the docs</a> for more
                                         information
                                         on enabling realtime updates.</p>
                                 </div>

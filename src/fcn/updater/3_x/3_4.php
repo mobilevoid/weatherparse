@@ -48,6 +48,6 @@ switch ($config->version->app) {
         $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Email & Moon time bug fixes, dependency updates, cleanup.';
         $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'PWSweather changed to use API Key from Password. Check settings!';
         $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'External Upload URLS migrated to HTTPS';
-        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Webcam upload scripts combined into one. See the <a href="https://docs.acuparse.com/INSTALL/#webcam-installation-optional">Install Docs</a>.';
+        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Webcam upload scripts combined into one. See the <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt">Install Docs</a>.';
 
 }

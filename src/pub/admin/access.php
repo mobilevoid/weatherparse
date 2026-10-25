@@ -131,7 +131,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true && 
                         <div class="row mt-3">
                             <div class="col mx-auto alert alert-info">
                                 <p><strong>Having Trouble?</strong><br/>See the <a
-                                            href="https://docs.acuparse.com/TROUBLESHOOTING">Troubleshooting Guide</a>
+                                            href="https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt">Troubleshooting Guide</a>
                                     for
                                     more details.</p>
                             </div>

@@ -65,7 +65,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
             } else {
                 $schema = dirname(__DIR__, 3) . '/sql/trim/disable.sql';
             }
-            $schema = "mysql -h{$config->mysql->host} -u{$config->mysql->username} -p{$config->mysql->password} {$config->mysql->database} < $schema";
+            $schema = mysqlClientCommand($config->mysql, escapeshellarg($config->mysql->database) . ' < ' . escapeshellarg($schema));
             $schema = exec($schema, $schemaOutput, $schemaReturn);
             syslog(LOG_INFO, "(SYSTEM){CONFIG}: Database Trimming Updated");
             $config->mysql->trim = (int)$_POST['mysql']['trim'];
@@ -212,10 +212,10 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
 
         // MQTT
         $config->upload->mqtt->enabled = (bool)$_POST['upload']['mqtt']['enabled'];
-        $config->upload->mqtt->client = (isset($_POST['upload']['mqtt']['client'])) ? $_POST['upload']['mqtt']['client'] : "acuparse";
+        $config->upload->mqtt->client = (isset($_POST['upload']['mqtt']['client'])) ? $_POST['upload']['mqtt']['client'] : "weatherparse";
         $config->upload->mqtt->server = (isset($_POST['upload']['mqtt']['server'])) ? $_POST['upload']['mqtt']['server'] : null;
         $config->upload->mqtt->port = (isset($_POST['upload']['mqtt']['port'])) ? $_POST['upload']['mqtt']['port'] : 1883;
-        $config->upload->mqtt->topic = (isset($_POST['upload']['mqtt']['topic'])) ? $_POST['upload']['mqtt']['topic'] : "acuparse";
+        $config->upload->mqtt->topic = (isset($_POST['upload']['mqtt']['topic'])) ? $_POST['upload']['mqtt']['topic'] : "weatherparse";
         $config->upload->mqtt->username = (isset($_POST['upload']['mqtt']['username'])) ? $_POST['upload']['mqtt']['username'] : null;
         $config->upload->mqtt->password = (isset($_POST['upload']['mqtt']['password'])) ? $_POST['upload']['mqtt']['password'] : null;
 

@@ -51,7 +51,7 @@ switch ($config->version->app) {
             $config->version->schema = '3.3';
             $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Fix feels and Archiving';
             $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . '<strong>Important</strong>: Feels temp now reports "NULL" not "0" when unset!';
-            $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . '<strong>Notice</strong>: Acuparse now filters Access data for erroneous data by default! See: <a href="https://docs.acuparse.com/INSTALL/#filter-access-readings">Filter Access Readings</a> for more details.';
+            $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . '<strong>Notice</strong>: WeatherParse now filters Access data for erroneous data by default! See: <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt">Filter Access Readings</a> for more details.';
             syslog(LOG_INFO, "(SYSTEM){UPDATER}: DONE 3.3.0");
         } else {
             syslog(LOG_INFO, "(SYSTEM){UPDATER}: FAILED updating schema to 3.3!");

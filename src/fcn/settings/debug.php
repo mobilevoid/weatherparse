@@ -45,7 +45,7 @@
                     <div class="row">
                         <div class="col">
                             <p>Sends MyAcuRite data to a debug/testing server.<br>
-                                See <a href="https://docs.acuparse.com/INSTALL/#debug-server">docs</a> for more details.
+                                See <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt">docs</a> for more details.
                             </p>
                         </div>
                     </div>

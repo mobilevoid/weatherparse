@@ -27,14 +27,14 @@
 # Startup and Configure Container
 ##
 
-if [ "$1" = 'acuparse' ]; then
+if [ "$1" = 'weatherparse' ]; then
   function _enable_lets_encrypt() {
     if [[ ("$LE_SECURE_WWW" == "yes") ]]; then
       LE_SECURE_DOMAINS=(-d "$LE_FQDN" -d www."$LE_FQDN")
-      sed -i "s/#ServerName/ServerName ${LE_FQDN}\n    ServerAlias www.${LE_FQDN}/g" /etc/apache2/sites-available/acuparse-ssl.conf
+      sed -i "s/#ServerName/ServerName ${LE_FQDN}\n    ServerAlias www.${LE_FQDN}/g" /etc/apache2/sites-available/weatherparse-ssl.conf
     else
       LE_SECURE_DOMAINS=(-d "$LE_FQDN")
-      sed -i "s/#ServerName/ServerName ${LE_FQDN}/g" /etc/apache2/sites-available/acuparse-ssl.conf
+      sed -i "s/#ServerName/ServerName ${LE_FQDN}/g" /etc/apache2/sites-available/weatherparse-ssl.conf
     fi
 
     if [[ ("$LE_REDIRECT_ENABLED" == 1 || "$LE_REDIRECT_ENABLED" == "yes") ]]; then
@@ -61,9 +61,9 @@ if [ "$1" = 'acuparse' ]; then
   }
 
   function _install_system_crontab() {
-    ACUPARSE_MAIN_CRON='* * * * * /usr/local/bin/php /opt/acuparse/cron/cron.php > /opt/acuparse/logs/cron.log 2>&1'
-    ACUPARSE_BACKUP_CRON='5 0 * * * /bin/bash /opt/acuparse/cron/backup > /opt/acuparse/logs/backup.log 2>&1'
-    printf "%s\n%s\n" "$ACUPARSE_MAIN_CRON" "$ACUPARSE_BACKUP_CRON" | crontab -
+    WEATHERPARSE_MAIN_CRON='* * * * * /usr/local/bin/php /opt/weatherparse/cron/cron.php > /opt/weatherparse/logs/cron.log 2>&1'
+    WEATHERPARSE_BACKUP_CRON='5 0 * * * /bin/bash /opt/weatherparse/cron/backup > /opt/weatherparse/logs/backup.log 2>&1'
+    printf "%s\n%s\n" "$WEATHERPARSE_MAIN_CRON" "$WEATHERPARSE_BACKUP_CRON" | crontab -
     env | grep -E MYSQL\|TZ >>/etc/environment
   }
 
@@ -90,10 +90,10 @@ if [ "$1" = 'acuparse' ]; then
   }
 
   function _check_default_config() {
-    if [ -z "$(ls -A '/opt/acuparse/src/usr/')" ]; then
+    if [ -z "$(ls -A '/opt/weatherparse/src/usr/')" ]; then
       echo "Empty config dir found, copying config template"
-      cp /var/opt/acuparse/config/config.new.php /opt/acuparse/src/usr/config.new.php
-      chown -R www-data:www-data /opt/acuparse/src/usr
+      cp /var/opt/weatherparse/config/config.new.php /opt/weatherparse/src/usr/config.new.php
+      chown -R www-data:www-data /opt/weatherparse/src/usr
     fi
   }
 
@@ -103,7 +103,7 @@ if [ "$1" = 'acuparse' ]; then
     apt-get update && apt-get install nano inetutils-tools net-tools iproute2 -yqq
     mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
     ln -sf /proc/1/fd/1 /var/log/apache2/error.log
-    ln -sf /proc/1/fd/1 /opt/acuparse/logs/cron.log
+    ln -sf /proc/1/fd/1 /opt/weatherparse/logs/cron.log
     apt-get clean
     rm -rf /var/lib/apt/lists/*
     unset DEBIAN_FRONTEND
@@ -121,13 +121,13 @@ if [ "$1" = 'acuparse' ]; then
   }
 
   function _check_database_permissions() {
-    if [ -z "$(mysql -h"${MYSQL_HOSTNAME}" -p"${MYSQL_ROOT_PASSWORD}" -e "use mysql; SELECT super_priv FROM user where user='acuparse' AND super_priv='Y';")" ]; then
+    if [ -z "$(mysql -h"${MYSQL_HOSTNAME}" -p"${MYSQL_ROOT_PASSWORD}" -e "use mysql; SELECT super_priv FROM user where user='${MYSQL_USER:-weatherparse}' AND super_priv='Y';")" ]; then
       echo "Updating DB User Permissions"
       mysql -h"${MYSQL_HOSTNAME}" -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'; GRANT ALL, RELOAD, SUPER, EVENT ON *.* TO '${MYSQL_USER}'; FLUSH PRIVILEGES;" || exit 1
     fi
   }
 
-  echo "Starting Acuparse Container"
+  echo "Starting WeatherParse Container"
 
   echo "Configuring Timezone"
   if [ -n "${TZ}" ]; then
@@ -188,7 +188,7 @@ if [ "$1" = 'acuparse' ]; then
   _start_system_services
   echo "DONE: Starting SERVICES"
 
-  echo "Acuparse Startup Complete!"
+  echo "WeatherParse Startup Complete!"
   echo "Passing container control to HEALTHCHECK service ..."
   exec docker-healthcheck
 else

@@ -24,14 +24,15 @@
 
 ##
 # File: cron/backup
-# Acuparse Backup Script
+# WeatherParse Backup Script
 ##
 
 ##########################
 ### REQUIRED VARIABLES ###
 ##########################
 
-#MYSQL_USER=acuparse
+#MYSQL_USER=weatherparse
+#MYSQL_DATABASE=weatherparse
 #MYSQL_PASSWORD=STRONG_PASSWORD
 #MYSQL_HOSTNAME=localhost
 KEEP_BACKUPS_FOR=${KEEP_BACKUPS_FOR:-7}   # Days. Default = 7.
@@ -39,10 +40,13 @@ BACKUP_CAM_IMAGES=${BACKUP_CAM_IMAGES:-1} # Set to 0 to skip backing up images. 
 
 ### Other Variables ###
 
+MYSQL_DATABASE=${MYSQL_DATABASE:-weatherparse}
+export MYSQL_PWD="$MYSQL_PASSWORD"
+
 BACKUPS_ENABLED=${BACKUPS_ENABLED:-1} # Set to 0 to disable.
-BACKUP_TMP_DIR=/var/opt/acuparse/backups/tmp
-BACKUP_DIR=/var/opt/acuparse/backups
-ACUPARSE_DIR=/opt/acuparse
+BACKUP_TMP_DIR=/var/opt/weatherparse/backups/tmp
+BACKUP_DIR=/var/opt/weatherparse/backups
+WEATHERPARSE_DIR=/opt/weatherparse
 
 ########################
 #### END: Variables ####
@@ -61,11 +65,11 @@ function _backup() {
 
   # Backup All MySQL Databases
   echo "Dumping MySQL Databases"
-  mysqldump -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" acuparse >"$BACKUP_TMP_DIR"/mysql.sql
+  mysqldump -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" "$MYSQL_DATABASE" >"$BACKUP_TMP_DIR"/mysql.sql
 
-  # Backup Acuparse Config
-  echo "Dumping Acuparse Config"
-  cp "$ACUPARSE_DIR"/src/usr/config.php "$BACKUP_TMP_DIR"/config.php >/dev/null 2>&1
+  # Backup WeatherParse Config
+  echo "Dumping WeatherParse Config"
+  cp "$WEATHERPARSE_DIR"/src/usr/config.php "$BACKUP_TMP_DIR"/config.php >/dev/null 2>&1
 
   # Combine Backup Files to Daily Package
   echo "Packaging and Compressing Archive"
@@ -74,7 +78,7 @@ function _backup() {
 
   if [ "$BACKUP_CAM_IMAGES" == 1 ]; then
     echo "Backing up Webcam Images"
-    tar -uvf "$BACKUP_DIR"/webcam.tar -C "$ACUPARSE_DIR"/src/pub/img/cam .
+    tar -uvf "$BACKUP_DIR"/webcam.tar -C "$WEATHERPARSE_DIR"/src/pub/img/cam .
   fi
   echo "DONE: Packaging and Compressing Archive"
 
@@ -88,9 +92,9 @@ function _restore() {
   mkdir -p "$BACKUP_TMP_DIR"
   tar -zxf "$BACKUP_DIR"/"$TAR_FILE" --directory "$BACKUP_TMP_DIR" >/dev/null 2>&1
   echo "Restoring SQL data"
-  mysql -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" acuparse <"$BACKUP_TMP_DIR"/mysql.sql >/dev/null 2>&1
-  echo "Restoring Acuparse data"
-  cp "$BACKUP_TMP_DIR"/config.php "$ACUPARSE_DIR"/src/usr/config.php >/dev/null 2>&1
+  mysql -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" "$MYSQL_DATABASE" <"$BACKUP_TMP_DIR"/mysql.sql >/dev/null 2>&1
+  echo "Restoring WeatherParse data"
+  cp "$BACKUP_TMP_DIR"/config.php "$WEATHERPARSE_DIR"/src/usr/config.php >/dev/null 2>&1
   rm -rf "$BACKUP_TMP_DIR"
 }
 

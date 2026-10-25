@@ -22,7 +22,7 @@
 
 ##
 # File: Dockerfile
-# Acuparse Dockerfile
+# WeatherParse Dockerfile
 ##
 
 ARG OS_VERSION=bullseye
@@ -32,19 +32,18 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG BUILD_VERSION
 ARG BUILD_BRANCH
-ARG ACUPARSE_DIR='/opt/acuparse'
+ARG WEATHERPARSE_DIR='/opt/weatherparse'
 
-LABEL MAINTAINER="hello@acuparse.com" \
-org.label-schema.schema-version="1.0" \
+LABEL org.label-schema.schema-version="1.0" \
 org.label-schema.build-date=${BUILD_DATE} \
-org.label-schema.name="acuparse/acuparse" \
-org.label-schema.description="Acuparse Weather Data Processing" \
+org.label-schema.name="mobilevoid/weatherparse" \
+org.label-schema.description="WeatherParse Weather Data Processing" \
 org.label-schema.url="https://www.acuarse.com/" \
-org.label-schema.vcs-url="https://gitlab.com/acuparse/acuparse" \
+org.label-schema.vcs-url="https://github.com/mobilevoid/weatherparse" \
 org.label-schema.vcs-ref=${VCS_REF} \
 org.label-schema.version=${BUILD_VERSION} \
-org.label-schema.usage="https://docs.acuparse.com/DOCKER" \
-org.label-schema.vendor="Acuparse"
+org.label-schema.usage="https://github.com/mobilevoid/weatherparse/blob/main/docs/DOCKER.txt" \
+org.label-schema.vendor="WeatherParse"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -60,10 +59,10 @@ cron \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
-COPY .. "${ACUPARSE_DIR}"
-WORKDIR "${ACUPARSE_DIR}"
+COPY .. "${WEATHERPARSE_DIR}"
+WORKDIR "${WEATHERPARSE_DIR}"
 
-RUN echo "Copy and run Acuparse BUILD" \
+RUN echo "Copy and run WeatherParse BUILD" \
 && mv .docker/* /usr/local/bin/ \
 && rm -rf .docker \
 && chmod +x /usr/local/bin/docker-build \
@@ -71,6 +70,6 @@ RUN echo "Copy and run Acuparse BUILD" \
 && rm -rf /usr/local/bin/docker-build
 
 ENTRYPOINT ["docker-entrypoint"]
-CMD ["acuparse"]
+CMD ["weatherparse"]
 
 EXPOSE 443

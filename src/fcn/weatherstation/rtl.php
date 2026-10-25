@@ -23,7 +23,7 @@
 
 /**
  * File: src/pub/weatherstation/rtl.php
- * Accepts data from the Acuparse RTL Relay
+ * Accepts data from the RTL Relay (acuparse/rtl-relay)
  */
 
 // Get the loader
@@ -47,7 +47,7 @@ $opts = array(
     'http' =>
         array(
             'method' => 'POST',
-            'header' => 'User-Agent: Acuparse',
+            'header' => 'User-Agent: WeatherParse',
             'content' => $json
         ),
     'ssl' =>

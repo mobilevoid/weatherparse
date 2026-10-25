@@ -30,7 +30,7 @@
  * @var mysqli $conn Global MYSQL Connection
  */
 
-$sql = "SHOW TABLES FROM `acuparse`;";
+$sql = "SHOW TABLES FROM `" . mysqli_real_escape_string($conn, $config->mysql->database) . "`;";
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
@@ -40,7 +40,7 @@ if (!$result) {
 } else {
     // Check to ensure there are no other accounts
     if (mysqli_num_rows(mysqli_query($conn, "SELECT * FROM `users`")) === 0) {
-        $pageTitle = 'Acuparse Installer | Create First User';
+        $pageTitle = 'WeatherParse Installer | Create First User';
         include(APP_BASE_PATH . '/inc/header.php');
         ?>
         <section id="add-user" class="add-user">

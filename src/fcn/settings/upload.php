@@ -217,7 +217,7 @@
                                                     <h5>Upload URL</h5>
                                                     <p class="alert-info">If installed on the same network as your
                                                         device, use secondary. See <a class="text-danger"
-                                                                                      href="https://docs.acuparse.com/other/DNS/#direct-connection-to-acuparse">docs/other/DNS.md</a>
+                                                                                      href="https://github.com/mobilevoid/weatherparse/blob/main/docs/other/DNS.txt">docs/other/DNS.txt</a>
                                                     </p>
                                                 </div>
                                             </div>
@@ -232,9 +232,6 @@
                                                             class="form-select">
                                                         <option value="https://atlasapi.myacurite.com" <?= ($config->upload->myacurite->access_url === "https://atlasapi.myacurite.com") ? 'selected="selected"' : false; ?>>
                                                             myacurite.com (official)
-                                                        </option>
-                                                        <option value="https://atlasapi.acuparse.com" <?= ($config->upload->myacurite->access_url === "https://atlasapi.acuparse.com") ? 'selected="selected"' : false; ?>>
-                                                            acuparse.com (secondary)
                                                         </option>
                                                     </select>
                                                 </div>
@@ -886,7 +883,7 @@
                                             <small id="openweather-updates-uid-help" class="form-text text-muted">Your
                                                 <a href="https://openweathermap.org/stations#steps">OpenWeather</a>
                                                 Station ID.<br>See <a
-                                                        href="https://docs.acuparse.com/external/OPENWEATHER">docs</a>
+                                                        href="https://github.com/mobilevoid/weatherparse/blob/main/docs/external/OPENWEATHER.txt">docs</a>
                                                 for details.</small>
                                         </div>
                                     </div>
@@ -1008,7 +1005,7 @@
                                             <p><strong>Supported Servers:</strong></p>
                                             <ul class="list-group">
                                                 <li class="list-group-item">
-                                                    <a href="https://docs.acuparse.com/external/generic/WEATHERPOLY">WeatherPoly</a>
+                                                    <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/external/generic/WEATHERPOLY.txt">WeatherPoly</a>
                                                     http(s)://{IP/HOSTNAME}:8080/acuparse
                                                 </li>
                                             </ul>
@@ -1029,7 +1026,7 @@
                         <div class="col">
                             <h3>MQTT</h3>
                             <p>Lightweight publish/subscribe messaging protocol for machine to machine
-                                telemetry.<br>See <a href="https://docs.acuparse.com/external/MQTT">docs</a> for
+                                telemetry.<br>See <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/external/MQTT.txt">docs</a> for
                                 details.
                             </p>
                         </div>
@@ -1134,7 +1131,7 @@
                                            name="upload[mqtt][client]"
                                            id="mqtt-upload-client"
                                            maxlength="24"
-                                           placeholder="acuparse"
+                                           placeholder="weatherparse"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
                                            value="<?= $config->upload->mqtt->client; ?>">
                                     <small id="mqtt-upload-client-help" class="form-text text-muted">ClientID used to
@@ -1150,11 +1147,11 @@
                                     <input type="text" class="form-control"
                                            name="upload[mqtt][topic]"
                                            id="mqtt-upload-topic"
-                                           placeholder="acuparse"
+                                           placeholder="weatherparse"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
                                            value="<?= $config->upload->mqtt->topic; ?>">
                                     <small id="mqtt-upload-topic-help" class="form-text text-muted">The main topic data
-                                        will be published to.<br>Default = <code>acuparse</code>.
+                                        will be published to.<br>Default = <code>weatherparse</code>.
                                     </small>
                                 </div>
                             </div>

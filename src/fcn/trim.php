@@ -47,7 +47,7 @@ if ($config->mysql->trim !== 0) {
         /**
          * @var $schema
          */
-        $schema = "mysql -h{$config->mysql->host} -u{$config->mysql->username} -p{$config->mysql->password} {$config->mysql->database} < $schema";
+        $schema = mysqlClientCommand($config->mysql, escapeshellarg($config->mysql->database) . ' < ' . escapeshellarg($schema));
         $schema = exec($schema, $schemaOutput, $schemaReturn);
         if ($schemaReturn !== 0) {
             syslog(LOG_WARNING, "(SYSTEM){TRIM}[WARNING]: Failed Enabling Database Trimming");

@@ -24,7 +24,7 @@
 
 ##
 # File: .docker/docker-build
-# Setup Acuparse Docker Container
+# Setup WeatherParse Docker Container
 ##
 
 function _setFlags() {
@@ -45,7 +45,7 @@ function _logging() {
   ln -sf /proc/1/fd/1 /var/log/syslog
   rm /var/log/apache2/error.log && touch /var/log/apache2/error.log
   rm /var/log/apache2/access.log && touch /var/log/apache2/access.log
-  touch /opt/acuparse/logs/cron.log
+  touch /opt/weatherparse/logs/cron.log
   echo "END: LOGGING"
 }
 
@@ -54,18 +54,18 @@ function _http() {
   openssl req -x509 -nodes -days 365 -newkey rsa:4096 \
     -keyout /etc/ssl/private/ssl-cert-snakeoil.key \
     -out /etc/ssl/certs/ssl-cert-snakeoil.pem \
-    -subj "/C=US/ST=Denver/L=Denver/O=Security/OU=Production/CN=acuparse" \
-    -addext "subjectAltName=DNS:acuparse,DNS:localhost,IP:127.0.0.1"
+    -subj "/C=US/ST=Denver/L=Denver/O=Security/OU=Production/CN=weatherparse" \
+    -addext "subjectAltName=DNS:weatherparse,DNS:localhost,IP:127.0.0.1"
   chown -R www-data:www-data /var/log/apache2
-  chown -R www-data:www-data "${ACUPARSE_DIR}"/src/pub
+  chown -R www-data:www-data "${WEATHERPARSE_DIR}"/src/pub
   a2dissite 000-default.conf
   rm /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
-  cp "${ACUPARSE_DIR}"/config/acuparse.conf /etc/apache2/sites-available/
-  cp "${ACUPARSE_DIR}"/config/acuparse-ssl.conf /etc/apache2/sites-available/
-  rm -rf "${ACUPARSE_DIR}"/config
-  mkdir -p /var/opt/acuparse/config && cp "${ACUPARSE_DIR}"/src/usr/config.new.php /var/opt/acuparse/config/config.new.php
-  a2ensite acuparse.conf
-  a2ensite acuparse-ssl.conf
+  cp "${WEATHERPARSE_DIR}"/config/weatherparse.conf /etc/apache2/sites-available/
+  cp "${WEATHERPARSE_DIR}"/config/weatherparse-ssl.conf /etc/apache2/sites-available/
+  rm -rf "${WEATHERPARSE_DIR}"/config
+  mkdir -p /var/opt/weatherparse/config && cp "${WEATHERPARSE_DIR}"/src/usr/config.new.php /var/opt/weatherparse/config/config.new.php
+  a2ensite weatherparse.conf
+  a2ensite weatherparse-ssl.conf
   a2enmod rewrite ssl
   mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
   echo "END: HTTPD"
@@ -78,10 +78,10 @@ function _openSSL() {
   echo "END: OpenSSL Config"
 }
 
-echo "START: Acuparse Docker BUILD ..."
+echo "START: WeatherParse Docker BUILD ..."
 _setFlags
 _permissions
 _logging
 _http
 _openSSL
-echo "END: Acuparse BUILD"
+echo "END: WeatherParse BUILD"

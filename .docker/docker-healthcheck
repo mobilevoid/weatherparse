@@ -40,7 +40,7 @@ function _healthcheck() {
   echo "$(date +'%b %d %H:%M:%S') ""${HOSTNAME}"" HEALTHCHECK[$$]: OK"
 }
 
-echo "Starting Acuparse HEALTHCHECK ..."
+echo "Starting WeatherParse HEALTHCHECK ..."
 while true; do
   _healthcheck
   sleep 120

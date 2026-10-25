@@ -47,7 +47,7 @@ if ($config->station->device === 0) {
     }
 }
 
-$genericQueryStatic = '&softwaretype=' . ucfirst($appInfo->name) . '&action=updateraw';
+$genericQueryStatic = '&softwaretype=' . 'WeatherParse' . '&action=updateraw';
 $genericQueryResult = file_get_contents(htmlentities($genericQueryUrl . $genericQuery . $genericQueryStatic));
 // Save to DB
 mysqli_query($conn,

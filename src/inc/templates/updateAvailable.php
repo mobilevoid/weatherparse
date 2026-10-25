@@ -34,7 +34,7 @@
         <div class="alert alert-warning alert-dismissible">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             <h4>Version <?= $latestRelease; ?> is available!</h4>
-            <p><a href="https://docs.acuparse.com/UPDATING">See the Update Guide for details!</a></p>
+            <p><a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/UPDATING.txt">See the Update Guide for details!</a></p>
         </div>
     </div>
 </section>

@@ -54,6 +54,20 @@ if (!isset($appInfo)) {
     $appInfo = (object)$appInfo;
 }
 
+if (!function_exists('mysqlClientCommand')) {
+    /**
+     * Build a mysql command-line client call. Host, user and database are shell-quoted and the password goes in the
+     * environment (MYSQL_PWD), so it never appears on the command line or in the process list.
+     * @param object $mysql The mysql section of the config
+     * @param string $args Extra arguments, already shell-quoted by the caller
+     */
+    function mysqlClientCommand(object $mysql, string $args): string
+    {
+        putenv('MYSQL_PWD=' . $mysql->password);
+        return 'mysql -h' . escapeshellarg($mysql->host) . ' -u' . escapeshellarg($mysql->username) . ' ' . $args;
+    }
+}
+
 // Set timezone
 if (date_default_timezone_get() != $config->site->timezone) {
     date_default_timezone_set($config->site->timezone);
@@ -68,7 +82,7 @@ if (!isset($conn)) {
         ini_set('mysqlnd_qc.enable_qc', 1);
         ini_set('mysqlnd_qc.cache_by_default', 1);
 
-        // PHP 8.1+ throws on every SQL error; Acuparse checks results itself, as on PHP 7.
+        // PHP 8.1+ throws on every SQL error; WeatherParse checks results itself, as on PHP 7.
         mysqli_report(MYSQLI_REPORT_OFF);
         $conn = mysqli_connect($config->mysql->host, $config->mysql->username, $config->mysql->password,
             $config->mysql->database);

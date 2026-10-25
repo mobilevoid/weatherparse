@@ -95,7 +95,7 @@ class getCurrentWeatherData
         /**
          * @var mysqli $conn Global MYSQL Connection
          * @var object $config Global Config
-         * @var boolean $installed Is Acuparse Installed?
+         * @var boolean $installed Is WeatherParse Installed?
          */
 
         if ($installed === true) {
@@ -124,7 +124,7 @@ class getCurrentWeatherData
                         $json_output = ['Status' => 'error', 'message' => 'No Data Received'];
                         echo json_encode($json_output);
                     } else {
-                        echo '<div class="col text-center alert alert-danger"><p><strong>No Data Received!</strong><br>Readings will display once data is received!<br>See <a href="https://docs.acuparse.com/TROUBLESHOOTING/#logs">Troubleshooting Logs</a> for details.</p></div>';
+                        echo '<div class="col text-center alert alert-danger"><p><strong>No Data Received!</strong><br>Readings will display once data is received!<br>See <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt">Troubleshooting Logs</a> for details.</p></div>';
                     }
                     exit();
                 }

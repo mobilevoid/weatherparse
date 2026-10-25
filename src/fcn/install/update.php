@@ -119,7 +119,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
                         <div class="alert alert-dark text-center">
                             <h3 class="font-weight-bolder">Updating to Version 3</h3>
                             <p><strong>Review the <a class="btn btn-warning btn-lg"
-                                                     href="https://docs.acuparse.com/updates/v3">Update
+                                                     href="https://github.com/mobilevoid/weatherparse/blob/main/docs/updates/v3.txt">Update
                                         Guide</a> before proceeding!</strong></p>
                         </div>
                     <?php } ?>

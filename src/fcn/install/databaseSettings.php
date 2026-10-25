@@ -26,7 +26,7 @@
  * Initial database settings
  */
 
-$pageTitle = 'Acuparse Setup';
+$pageTitle = 'WeatherParse Setup';
 include(APP_BASE_PATH . '/inc/header.php');
 ?>
     <section id="config-database" class="config-database">
@@ -68,7 +68,7 @@ include(APP_BASE_PATH . '/inc/header.php');
                                            name="mysql[database]"
                                            id="mysql-database"
                                            maxlength="35"
-                                           value="<?= (!empty($envDatabase)) ? $envDatabase : "acuparse" ?>">
+                                           value="<?= (!empty($envDatabase)) ? $envDatabase : "weatherparse" ?>">
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -80,7 +80,7 @@ include(APP_BASE_PATH . '/inc/header.php');
                                            name="mysql[username]"
                                            id="mysql-username"
                                            maxlength="35"
-                                           value="<?= (!empty($envDatabaseUser)) ? $envDatabaseUser : "acuparse" ?>">
+                                           value="<?= (!empty($envDatabaseUser)) ? $envDatabaseUser : "weatherparse" ?>">
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -102,7 +102,7 @@ include(APP_BASE_PATH . '/inc/header.php');
                             <div class="row">
                                 <div class="col">
                                     <p><strong>Database Trimming</strong></p>
-                                    <p><a href="https://docs.acuparse.com/INSTALL/#database-trimming">Database
+                                    <p><a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt">Database
                                             Trimming</a> keeps your database tables clean.</p>
                                 </div>
                             </div>

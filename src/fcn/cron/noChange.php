@@ -58,7 +58,7 @@ if ((strtotime($lastUpdate['timestamp']) < strtotime("-" . $config->outage_alert
         if ($config->outage_alert->enabled === true) {
             require_once(APP_BASE_PATH . '/fcn/mailer.php');
             if ($config->site->hostname === 'localhost') {
-                $hostname = 'Acuparse';
+                $hostname = 'WeatherParse';
             } else {
                 $hostname = $config->site->hostname;
             }

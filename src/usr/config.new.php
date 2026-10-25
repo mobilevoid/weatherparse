@@ -31,8 +31,8 @@ return (object)array(
     // Database config variables
     'mysql' => (object)array(
         'host' => 'localhost', // Database Host
-        'database' => 'acuparse', // Database to use
-        'username' => 'acuparse', // Database User
+        'database' => 'weatherparse', // Database to use
+        'username' => 'weatherparse', // Database User
         'password' => '', // Database Password
         'trim' => 1, // Database trim level
     ),
@@ -57,7 +57,7 @@ return (object)array(
 
     // Site specific config variables
     'site' => (object)array(
-        'name' => 'Acuparse Weather Station', // Name of the weather station
+        'name' => 'WeatherParse Weather Station', // Name of the weather station
         'desc' => 'A Simple Weather Station Script', // Station Description
         'location' => 'Somewhere, Earth', // Station Location
         'hostname' => 'localhost', // Station Domain or IP Address
@@ -207,10 +207,10 @@ return (object)array(
         // MQTT Settings
         'mqtt' => (object)array(
             'enabled' => false, // true or false
-            'client' => 'acuparse', // Client ID
+            'client' => 'weatherparse', // Client ID
             'server' => '', // Server URL
             'port' => '1883', // Port
-            'topic' => 'acuparse', // Topic
+            'topic' => 'weatherparse', // Topic
             'username' => '', // Username
             'password' => '', // Password
         ),

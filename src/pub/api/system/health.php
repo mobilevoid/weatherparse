@@ -32,7 +32,7 @@ require(dirname(__DIR__, 3) . '/inc/loader.php');
 /**
  * @var mysqli $conn Global MYSQL Connection
  * @var object $config Global Config
- * @var object $installed Is Acuparse Installed?
+ * @var object $installed Is WeatherParse Installed?
  */
 
 header('Content-Type: application/json; charset=UTF-8'); // Set the header for JSON output

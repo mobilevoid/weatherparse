@@ -64,7 +64,7 @@ class getCurrentLightningData
                     $json_output = ['Status' => 'error', 'message' => 'No Lightning Data Reported'];
                     echo json_encode($json_output);
                 } else {
-                    echo '<div class="col text-center alert alert-danger"><strong>No Lightning Data Reported!</strong><br>Check your <a href="https://docs.acuparse.com/TROUBLESHOOTING/#logs">logs</a> for more details.</div>';
+                    echo '<div class="col text-center alert alert-danger"><strong>No Lightning Data Reported!</strong><br>Check your <a href="https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt">logs</a> for more details.</div>';
                 }
                 exit();
             }

@@ -79,12 +79,12 @@ $export = str_ireplace('stdClass::__set_state', '(object)', $export);
 $saveConfig = file_put_contents($configFilePath, '<?php return ' . $export . ';');
 if ($saveConfig) {
     $sqlPath = dirname(__DIR__, 3) . '/sql';
-    $testDB = "mysql -h{$config->mysql->host} -u{$config->mysql->username} -p{$config->mysql->password} --batch --skip-column-names -e \"SHOW DATABASES LIKE 'acuparse'\" | grep acuparse";
+    $testDB = mysqlClientCommand($config->mysql, '--batch --skip-column-names -e ' . escapeshellarg("SHOW DATABASES LIKE '" . addslashes($config->mysql->database) . "'")) . ' | grep -qx ' . escapeshellarg($config->mysql->database);
     $testDB = exec($testDB, $testDBOutput, $testDBReturn);
     if ($testDBReturn === 0) {
         // Load the database with the default schema
         $schema = $sqlPath . '/master.sql';
-        $schema = "mysql -h{$config->mysql->host} -u{$config->mysql->username} -p{$config->mysql->password} {$config->mysql->database} < $schema";
+        $schema = mysqlClientCommand($config->mysql, escapeshellarg($config->mysql->database) . ' < ' . escapeshellarg($schema));
         $schema = exec($schema, $schemaOutput, $schemaReturn);
         if ($schemaReturn !== 0) {
             if (!unlink($configFilePath)) {
@@ -103,7 +103,7 @@ if ($saveConfig) {
                 } elseif ($config->mysql->trim === 2) {
                     $schema = dirname(__DIR__, 3) . '/sql/trim/enable_xtower.sql';
                 }
-                $schema = "mysql -h{$config->mysql->host} -u{$config->mysql->username} -p{$config->mysql->password} {$config->mysql->database} < $schema";
+                $schema = mysqlClientCommand($config->mysql, escapeshellarg($config->mysql->database) . ' < ' . escapeshellarg($schema));
                 $schema = exec($schema, $schemaOutput, $schemaReturn);
                 if ($schemaReturn !== 0) {
                     syslog(LOG_WARNING, "(SYSTEM){TRIM}[WARNING]: Failed Enabling Database Trimming | Result: $schemaReturn");

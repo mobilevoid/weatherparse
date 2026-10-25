@@ -76,7 +76,7 @@ function mailer($sendTo, $subject, $message, $replyTo = false, $replyToName = fa
         $headers = 'MIME-Version: 1.0' . PHP_EOL;
         $headers .= 'Content-type: text/html; charset=iso-8859-1' . PHP_EOL;
         $headers .= 'From: ' . $config->site->name . ' <' . 'noreply@' . $config->site->hostname . '>' . PHP_EOL;
-        $headers .= 'X-Mailer: ' . $appInfo->name . ' ' . $appInfo->version . PHP_EOL;
+        $headers .= 'X-Mailer: WeatherParse' . ' ' . $appInfo->version . PHP_EOL;
         if ($replyTo !== false) {
             $headers .= 'Reply-to: ' . $replyToName . ' <' . $replyTo . '>' . PHP_EOL;
         }

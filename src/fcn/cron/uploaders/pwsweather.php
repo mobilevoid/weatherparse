@@ -46,7 +46,7 @@ if ($config->station->device === 0) {
         $pwsQuery = $pwsQuery . '&UV=' . $atlas->uvIndex;
     }
 }
-$pwsQueryStatic = '&softwaretype=' . $appInfo->name . '_v' . $config->version->app . '&action=updateraw';
+$pwsQueryStatic = '&softwaretype=' . 'WeatherParse_v' . $config->version->app . '&action=updateraw';
 $pwsQueryResult = file_get_contents($pwsQueryUrl . $pwsQuery . $pwsQueryStatic);
 // Save to DB
 mysqli_query($conn, "INSERT INTO `pws_updates` (`query`,`result`) VALUES ('$pwsQuery', '$pwsQueryResult')");

@@ -30,7 +30,7 @@
  * @var mysqli $conn Global MYSQL Connection
  * @var object $config Global Config
  * @var object $appInfo Global Application Info
- * @var boolean $installed Is Acuparse Installed?
+ * @var boolean $installed Is WeatherParse Installed?
  */
 
 if ($installed === true && (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true)) {
@@ -47,12 +47,12 @@ if ($installed === true && (isset($_SESSION['authenticated']) && $_SESSION['auth
     <div class="row footer-appname">
         <div class="col-auto mx-auto">
             <p>Powered by <a href="<?= $appInfo->homepage; ?>"
-                             target='_blank'><strong><?= ucfirst($appInfo->name); ?></strong></a>
+                             target='_blank'><strong>WeatherParse</strong></a>
                 <?php
                 if (isset($adminUser) && $adminUser === true) {
                     ?>
                     <span class="small">(Version <a target="_blank"
-                                                    href="https://www.acuparse.com/releases/v<?= str_replace('.', '-', $config->version->app); ?>"><?= $config->version->app; ?></a>)</span>
+                                                    href="https://github.com/mobilevoid/weatherparse/releases/tag/v<?= $config->version->app; ?>"><?= $config->version->app; ?></a>)</span>
                     <?php
                 }
                 ?>

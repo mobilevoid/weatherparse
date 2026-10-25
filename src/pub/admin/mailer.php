@@ -41,8 +41,8 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
     $email = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT `email` FROM `users` WHERE `uid` = '$uid'"));
     $email = $email['email'];
-    $subject = 'Acuparse Test Email';
-    $message = '<h2>Acuparse Test Email</h2><p>This is a test email from your Acuparse System.</p>';
+    $subject = 'WeatherParse Test Email';
+    $message = '<h2>WeatherParse Test Email</h2><p>This is a test email from your WeatherParse System.</p>';
 
     // Mail it
     $testEmail = mailer($email, $subject, $message);
