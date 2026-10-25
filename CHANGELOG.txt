@@ -9,6 +9,54 @@ and this project adheres to Semantic Versioning (http://semver.org/).
 [Unreleased]
 ============
 
+4.0.0 - WeatherParse (unreleased)
+=================================
+
+WeatherParse is a fork of Acuparse 3.9.4 by Maxwell Power (AGPL-3.0). Entries below 4.0.0 are Acuparse history.
+
+Changed
+-------
+
+- Renamed to WeatherParse: paths /opt/weatherparse, Apache sites config/weatherparse*.conf, syslog tag weatherparse,
+  defaults for new installs (database, user, MQTT client and topic) weatherparse. Existing installs keep their values.
+- Requires Debian 12 or 13 with PHP 8.2 to 8.4.
+- Update check reads the public GitHub release list only (api.github.com/repos/mobilevoid/weatherparse/releases/latest).
+- Windy uploads use the Windy Stations API v2 (station ID plus station password; metric units). API v1 is retired.
+- MyAcuRite forwarding goes directly to AcuRite. The address is looked up in DNS (not /etc/hosts) so a local redirect
+  cannot loop the data back, and the third-party acuparse.com relay option is gone.
+- Documentation is plain text (.txt) with a manual install guide for Debian 12/13 and Raspberry Pi OS.
+
+Added
+-----
+
+- Temperature spike filter: drops Iris/Atlas temperatures below -60 F, above 140 F, or changing more than a set limit
+  (default 10 F per 5 minutes) from the last stored reading. Other readings in the report are kept.
+- Maintenance mode: records locally but pauses every upload and MyAcuRite forwarding while the sensor is serviced.
+- Second camera (CAMERA2_HOST in cam/config.env) with its own archive and names on the camera page.
+- Camera image retention: KEEP_DAYS in cam/config.env, applied by a daily "webcam cleanup" cron job.
+- Camera script lock so overlapping cron runs skip instead of clashing.
+
+Removed
+-------
+
+- Telemetry: the daily report of OS, kernel, install ID and hub MAC to version.acuparse.com.
+- Donation and sponsor links, the Acuparse GitLab CI, and the old documentation site files (including its analytics tag).
+
+Fixed
+-----
+
+- PHP 8: deprecated FILTER_SANITIZE_STRING replaced (117 uses) with an identical helper; SQL errors no longer abort
+  data processing; missing lightning distance stored as NULL; no rainfall row no longer warns.
+- Settings: a field the browser does not send (a disabled service) keeps its saved value. Before, saving the settings
+  page erased Weather Underground, CWOP and Mailgun credentials of any disabled service.
+- Settings: Realtime UTC buttons were inverted, so every save flipped the setting.
+- Settings: saving Windy settings overwrote the Windguru URL.
+- The "Filter Erroneous Access Readings" setting never ran (it compared true with 1).
+- Installer and maintenance scripts no longer put the database password on the command line, and use the configured
+  database name instead of a hard-coded one.
+- Camera: images were not published when MODE was 'local' on a single server (documented); a trailing slash on a page
+  (for example /archive/) no longer returns a server error.
+
 3.9.4 (https://www.acuparse.com/releases/v3-9-4/) - 2023-07-12
 ==============================================================
 
