@@ -262,14 +262,14 @@ class getCurrentWeatherData
 
             // Process Rainfall:
             $result = mysqli_fetch_assoc(mysqli_query($conn, "SELECT `rainin` FROM `rainfall`"));
-            $this->rainIN = (float)$result['rainin']; // Inches
-            $this->rainMM = round($result['rainin'] * 25.4, 2); // Millimeters
+            $this->rainIN = (float)($result['rainin'] ?? 0); // Inches (no row yet = no rain)
+            $this->rainMM = round(($result['rainin'] ?? 0) * 25.4, 2); // Millimeters
 
             // Today's Rainfall:
             $result = mysqli_fetch_assoc(mysqli_query($conn,
                 "SELECT `dailyrainin` FROM `dailyrain` WHERE DATE(`date`) = CURDATE()"));
-            $this->rainTotalIN_today = (float)$result['dailyrainin']; // Inches
-            $this->rainTotalMM_today = round($result['dailyrainin'] * 25.4, 2); // Millimeters
+            $this->rainTotalIN_today = (float)($result['dailyrainin'] ?? 0); // Inches (no row yet today = no rain)
+            $this->rainTotalMM_today = round(($result['dailyrainin'] ?? 0) * 25.4, 2); // Millimeters
 
             // Disable some readings when running in Cron
             if ($cron === false) {
