@@ -89,6 +89,32 @@ function _moveImage() {
   chown -R "${APACHE_USER}":"${APACHE_GROUP}" "${WEBDIR}"
   convert -delay 25 -loop 0 "${WEBDIR}"/"${ARCHIVE_DATE}"/*.jpg "${WEBDIR}"/"${ARCHIVE_DATE}"/daily.gif
 }
+# Delete camera images older than KEEP_DAYS (0 or unset = keep everything).
+# Goes by the date in the name: web folders YYYY-MM-DD and archive files YYYY-MM-DD_HHMM.jpg.
+function _cleanup() {
+  if [ -z "${KEEP_DAYS}" ] || [ "${KEEP_DAYS}" -le 0 ] 2>/dev/null; then
+    return
+  fi
+  CUTOFF=$(date -d "-${KEEP_DAYS} days" +"%Y-%m-%d")
+  echo "Removing images older than ${KEEP_DAYS} days (before ${CUTOFF})"
+  if [ -d "${WEBDIR}" ]; then
+    for DIR in "${WEBDIR}"/????-??-??; do
+      [ -d "${DIR}" ] || continue
+      NAME=$(basename "${DIR}")
+      [[ "${NAME}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || continue
+      [[ "${NAME}" < "${CUTOFF}" ]] && rm -rf -- "${DIR}"
+    done
+  fi
+  if [ -d "${ARCHIVE_DIR}" ]; then
+    find "${ARCHIVE_DIR}" -type f -regextype posix-extended -regex ".*/[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{4}\.jpg" -print0 |
+      while IFS= read -r -d "" FILE; do
+        DAY=$(basename "${FILE}" | cut -c1-10)
+        [[ "${DAY}" < "${CUTOFF}" ]] && rm -f -- "${FILE}"
+      done
+    find "${ARCHIVE_DIR}" -mindepth 1 -type d -empty -delete
+  fi
+}
+
 # shellcheck source=/builds/acuparse/acuparse/cam/templates/config.env
 source /opt/acuparse/cam/config.env
 
@@ -132,6 +158,8 @@ if [ "$MODE" == 'combined' ] || [ "$MODE" == 'remote' ]; then
   _moveImage
 
 fi
+
+_cleanup
 
 if [ "$MODE" == 'combined' ] || [ "$MODE" == 'local' ]; then
   echo "Cleaning LOCAL TMP"
