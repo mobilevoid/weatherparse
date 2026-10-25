@@ -67,6 +67,8 @@ if (!isset($conn)) {
         ini_set('mysqlnd_qc.enable_qc', 1);
         ini_set('mysqlnd_qc.cache_by_default', 1);
 
+        // PHP 8.1+ throws on every SQL error; Acuparse checks results itself, as on PHP 7.
+        mysqli_report(MYSQLI_REPORT_OFF);
         $conn = mysqli_connect($config->mysql->host, $config->mysql->username, $config->mysql->password,
             $config->mysql->database);
         if (!$conn) {

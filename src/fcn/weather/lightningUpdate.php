@@ -35,6 +35,9 @@
 
 function updateLightning(int $strikecount, int $interference, ?string $last_strike_ts, ?float $last_strike_distance, string $source)
 {
+    // No strike yet: store NULL, not an empty string (strict SQL rejects '' for numbers and dates).
+    $last_strike_ts_sql = ($last_strike_ts === null || $last_strike_ts === '') ? 'NULL' : "'" . $last_strike_ts . "'";
+    $last_strike_distance_sql = $last_strike_distance === null ? 'NULL' : (string)(float)$last_strike_distance;
     global $timestamp;
     global $config;
     global $conn;
@@ -61,7 +64,7 @@ function updateLightning(int $strikecount, int $interference, ?string $last_stri
         // If there is no existing data, let's add this one
         if (empty($lastStrikeTime)) {
             $sql = "INSERT INTO `$dbsource` (`dailystrikes`, `currentstrikes`, `last_update`, `date`) VALUES(0, 0, '$timestamp', '$timestampDate') ON DUPLICATE KEY UPDATE `dailystrikes` = '$strikecount', `currentstrikes` = '$strikecount', `last_update` = '$timestamp';
-            INSERT INTO `lightningData` (`strikecount`, `interference`, `last_strike_ts`, `last_strike_distance`, `source`) VALUES('$strikecount', '$interference', '$last_strike_ts', '$last_strike_distance', '$source') ON DUPLICATE KEY UPDATE `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`='$last_strike_ts', `last_strike_distance`='$last_strike_distance', `source`='$source';";
+            INSERT INTO `lightningData` (`strikecount`, `interference`, `last_strike_ts`, `last_strike_distance`, `source`) VALUES('$strikecount', '$interference', $last_strike_ts_sql, $last_strike_distance_sql, '$source') ON DUPLICATE KEY UPDATE `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`=$last_strike_ts_sql, `last_strike_distance`=$last_strike_distance_sql, `source`='$source';";
             mysqli_multi_query($conn, $sql) or syslog(LOG_ERR,
                 "(ACCESS){LIGHTNING}<$device>[SQL ERROR]: Failed inserting! +SC, no LST. Details: " . mysqli_error($conn));
             while (mysqli_next_result($conn)) {
@@ -99,7 +102,7 @@ function updateLightning(int $strikecount, int $interference, ?string $last_stri
 
                     // Insert lightning readings into DB
                     $sql = "INSERT INTO `$dbsource` (`dailystrikes`, `currentstrikes`, `last_update`, `date`) VALUES('$dailyStrikes', '$currentStrikes', '$timestamp', '$timestampDate') ON DUPLICATE KEY UPDATE `dailystrikes`='$dailyStrikes', `currentstrikes`='$currentStrikes', `last_update`='$timestamp';
-                            UPDATE `lightningData` SET `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`='$last_strike_ts', `last_strike_distance`='$last_strike_distance' WHERE `source`='$source';";
+                            UPDATE `lightningData` SET `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`=$last_strike_ts_sql, `last_strike_distance`=$last_strike_distance_sql WHERE `source`='$source';";
                     mysqli_multi_query($conn, $sql) or syslog(LOG_ERR,
                         "(ACCESS){LIGHTNING}<$device>[SQL ERROR]: Failed to insert readings. Details: " . mysqli_error($conn));
                     while (mysqli_next_result($conn)) {
@@ -109,7 +112,7 @@ function updateLightning(int $strikecount, int $interference, ?string $last_stri
                         "(ACCESS){LIGHTNING}<$device>: Daily = $dailyStrikes | Current: $currentStrikes | Count: $strikecount | Last: $lastStrikecount | Last Daily: $dailyStrikesSoFar | Interference = $interference | Last Strike = $last_strike_ts | Distance = $last_strike_distance");
                 } // strikeCount changed, date not greater, update the readings
                 else {
-                    $sql = "UPDATE `lightningData` SET `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`='$last_strike_ts', `last_strike_distance`='$last_strike_distance' WHERE `source`='$source'";
+                    $sql = "UPDATE `lightningData` SET `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`=$last_strike_ts_sql, `last_strike_distance`=$last_strike_distance_sql WHERE `source`='$source'";
                     mysqli_query($conn, $sql) or syslog(LOG_ERR,
                         "(ACCESS){LIGHTNING}<$device>[SQL ERROR]: Count changed, date not greater - Insert Failed. Details: " . mysqli_error($conn));
                     syslog(LOG_INFO,
@@ -135,7 +138,7 @@ function updateLightning(int $strikecount, int $interference, ?string $last_stri
         // If there is no existing data, let's start with this one
         if (empty($lastStrikeTime)) {
             $sql = "INSERT INTO `$dbsource` (`dailystrikes`, `currentstrikes`, `last_update`, `date`) VALUES(0, 0, '$timestamp', '$timestampDate') ON DUPLICATE KEY UPDATE `last_update` = '$timestamp';
-            INSERT INTO `lightningData` (`strikecount`, `interference`, `last_strike_ts`, `last_strike_distance`, `source`) VALUES('$strikecount', '$interference', '$timestamp', '$last_strike_distance', '$source') ON DUPLICATE KEY UPDATE `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`='$last_strike_ts', `last_strike_distance`='$last_strike_distance', `source`='$source';";
+            INSERT INTO `lightningData` (`strikecount`, `interference`, `last_strike_ts`, `last_strike_distance`, `source`) VALUES('$strikecount', '$interference', '$timestamp', $last_strike_distance_sql, '$source') ON DUPLICATE KEY UPDATE `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`=$last_strike_ts_sql, `last_strike_distance`=$last_strike_distance_sql, `source`='$source';";
             mysqli_multi_query($conn, $sql) or syslog(LOG_ERR,
                 "(ACCESS){LIGHTNING}<$device>[SQL ERROR]: Failed inserting! Zero SC, no LST. Details: " . mysqli_error($conn));
             while (mysqli_next_result($conn)) {
@@ -143,7 +146,7 @@ function updateLightning(int $strikecount, int $interference, ?string $last_stri
             }
         } elseif ($lastStrikeTime < $timestampDate) {
             $sql = "INSERT INTO `$dbsource` (`dailystrikes`, `currentstrikes`, `last_update`, `date`) VALUES(0, 0, '$timestamp', '$timestampDate') ON DUPLICATE KEY UPDATE `last_update` = '$timestamp';
-            INSERT INTO `lightningData` (`strikecount`, `interference`, `last_strike_ts`, `last_strike_distance`, `source`) VALUES('$strikecount', '$interference', '$timestamp', '$last_strike_distance', '$source') ON DUPLICATE KEY UPDATE `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`='$last_strike_ts', `last_strike_distance`='$last_strike_distance', `source`='$source';";
+            INSERT INTO `lightningData` (`strikecount`, `interference`, `last_strike_ts`, `last_strike_distance`, `source`) VALUES('$strikecount', '$interference', '$timestamp', $last_strike_distance_sql, '$source') ON DUPLICATE KEY UPDATE `strikecount`='$strikecount', `interference`='$interference', `last_strike_ts`=$last_strike_ts_sql, `last_strike_distance`=$last_strike_distance_sql, `source`='$source';";
             mysqli_multi_query($conn, $sql) or syslog(LOG_ERR,
                 "(ACCESS){LIGHTNING}<$device>[SQL ERROR]: Failed inserting Zero SC. Details: " . mysqli_error($conn));
             while (mysqli_next_result($conn)) {
