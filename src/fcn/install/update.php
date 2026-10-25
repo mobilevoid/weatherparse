@@ -37,12 +37,13 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
     if (isset($_GET['do'])) {
         $notes = '';
         if (version_compare($config->version->app, '2.10.0-release', '>=')) {
-            $updatePattern = dirname(__DIR__, 2) . '/fcn/updater/3_x/*.php';
+            $updateFiles = array_merge(glob(dirname(__DIR__, 2) . '/fcn/updater/3_x/*.php'),
+                glob(dirname(__DIR__, 2) . '/fcn/updater/4_x/*.php'));
         } else {
-            $updatePattern = dirname(__DIR__, 2) . '/fcn/updater/*/*.php';
+            $updateFiles = glob(dirname(__DIR__, 2) . '/fcn/updater/*/*.php');
         }
         set_time_limit(0);
-        foreach (glob($updatePattern) as $filename) {
+        foreach ($updateFiles as $filename) {
             include $filename;
         }
 
