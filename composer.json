@@ -1,5 +1,5 @@
 {
-  "name": "acuparse/acuparse",
+  "name": "mobilevoid/weatherparse",
   "description": "AcuRite Access/smartHUB and IP Camera Data Processing, Display, and Upload.",
   "license": "AGPL-3.0-or-later",
   "type": "project",
@@ -23,42 +23,28 @@
     "acurite-tower",
     "windy",
     "atlas",
-    "atlas-weather-station"
+    "atlas-weather-station",
+    "weatherparse"
   ],
-  "homepage": "https://www.acuparse.com",
+  "homepage": "https://github.com/mobilevoid/weatherparse",
   "readme": "README.md",
   "authors": [
     {
+      "name": "WeatherParse contributors",
+      "homepage": "https://github.com/mobilevoid/weatherparse",
+      "role": "Maintainer"
+    },
+    {
       "name": "Maxwell Power",
-      "email": "max@acuparse.com",
-      "homepage": "https://www.acuparse.com",
-      "role": "Owner"
+      "homepage": "https://github.com/acuparse/acuparse",
+      "role": "Original author (Acuparse)"
     }
   ],
   "support": {
-    "email": "support@acuparse.com",
-    "source": "https://github.com/acuparse/acuparse",
-    "docs": "https://docs.acuparse.com",
-    "issues": "https://gitlab.com/acuparse/acuparse/-/issues"
+    "source": "https://github.com/mobilevoid/weatherparse",
+    "docs": "https://github.com/mobilevoid/weatherparse/tree/main/docs",
+    "issues": "https://github.com/mobilevoid/weatherparse/issues"
   },
-  "funding": [
-    {
-      "type": "patreon",
-      "url": "https://www.patreon.com/maxtpower"
-    },
-    {
-      "type": "other",
-      "url": "https://www.buymeacoffee.com/maxp"
-    },
-    {
-      "type": "other",
-      "url": "https://www.paypal.me/maxtpower"
-    },
-    {
-      "type": "other",
-      "url": "https://www.venmo.com/maxtpower"
-    }
-  ],
   "repositories": [
     {
       "type": "package",

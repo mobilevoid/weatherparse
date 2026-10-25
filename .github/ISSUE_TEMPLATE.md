@@ -1,5 +1,7 @@
-The Acuparse GitHub issue tracker is currently closed!
+**What happened?**
 
-We encourage you to open an issue on the GitLab issue tracker. You can log into GitLab.com using your GitHub account.
+**What did you expect to happen?**
 
-[https://gitlab.com/acuparse/acuparse/-/issues/new](https://gitlab.com/acuparse/acuparse/-/issues/new)
+**WeatherParse version, OS and PHP version** (Admin > Settings shows the version; `php -v` shows PHP):
+
+**Relevant log lines** (`journalctl -t weatherparse` or `/var/log/apache2/error.log`). Remove passwords, keys and addresses first.
