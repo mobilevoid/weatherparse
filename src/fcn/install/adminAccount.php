@@ -34,7 +34,7 @@
 // Check to ensure there are no other accounts
 if (mysqli_num_rows(mysqli_query($conn, "SELECT * FROM `users`")) === 0) {
     $username = mysqli_real_escape_string($conn,
-        strtolower(filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING)));
+        strtolower(filter_input(INPUT_POST, 'username', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
     $password = password_hash(filter_input(INPUT_POST, 'password', FILTER_UNSAFE_RAW), PASSWORD_DEFAULT);
     $email = mysqli_real_escape_string($conn,
         strtolower(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL)));

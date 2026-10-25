@@ -34,7 +34,7 @@ set_time_limit(0);
 // Do some input filtering
 $raw = $_POST;
 array_walk_recursive($raw, function (&$i) {
-    $i = filter_var(trim($i), FILTER_SANITIZE_STRING);
+    $i = filter_var(trim($i), FILTER_CALLBACK, ['options' => 'legacySanitizeString']);
 });
 $_POST = $raw;
 

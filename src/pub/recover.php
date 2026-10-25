@@ -120,7 +120,7 @@ if (!isset($_SESSION['authenticated'])) {
     }// Display the password change form
     elseif (isset($_GET['do'])) {
         //Get the User ID we're working on
-        $hash = mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'hash', FILTER_SANITIZE_STRING));
+        $hash = mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'hash', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Count the rows returned
         $count = mysqli_num_rows(mysqli_query($conn, "SELECT `uid` FROM `password_recover` WHERE `hash`='$hash'"));
@@ -170,7 +170,7 @@ if (!isset($_SESSION['authenticated'])) {
     } // Process Password Change
     elseif (isset($_GET['password'])) {
 // Get id
-        $hash = mysqli_real_escape_string($conn, filter_input(INPUT_POST, 'hash', FILTER_SANITIZE_STRING));
+        $hash = mysqli_real_escape_string($conn, filter_input(INPUT_POST, 'hash', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Get user id
         $uid = mysqli_fetch_assoc(mysqli_query($conn, "SELECT `uid` FROM `password_recover` WHERE `hash`='$hash'"));
@@ -184,11 +184,11 @@ if (!isset($_SESSION['authenticated'])) {
 
         // Get requested password
         $password = password_hash(mysqli_real_escape_string($conn,
-            filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_STRING)), PASSWORD_DEFAULT);
+            filter_input(INPUT_POST, 'pass', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])), PASSWORD_DEFAULT);
 
         // Check and see if the password actually changed
         if (password_verify(mysqli_real_escape_string($conn,
-            filter_input(INPUT_POST, 'pass', FILTER_SANITIZE_STRING)), $userRow['password'])) {
+            filter_input(INPUT_POST, 'pass', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])), $userRow['password'])) {
             mysqli_query($conn, "DELETE FROM `password_recover` WHERE `uid` = '$uid'");
             // Log it
             syslog(LOG_ERR, "(SYSTEM){USER}: Password recovery for UID $uid failed");

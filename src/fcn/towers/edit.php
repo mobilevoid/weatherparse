@@ -33,13 +33,13 @@
 // Process the update
 if (isset($_GET['do'])) {
     $towerName = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'name', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $towerSensorID = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'id', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'id', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $private = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'private', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'private', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $originalTowerID = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'original-id', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'original-id', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     if ($towerSensorID === $originalTowerID) {
         $result = mysqli_query($conn,
             "UPDATE `towers` SET `name` = '$towerName', `private` = '$private' WHERE `sensor` = '$towerSensorID'");
@@ -60,7 +60,7 @@ if (isset($_GET['do'])) {
 } // Show the edit form
 else {
     $towerSensorID = mysqli_real_escape_string($conn,
-        filter_input(INPUT_GET, 'sensor_id', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_GET, 'sensor_id', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $row = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT * FROM `towers` WHERE `sensor` = $towerSensorID"));
     ?>

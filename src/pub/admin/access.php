@@ -49,7 +49,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true && 
         <div class="col-md-8 col-12 mx-auto alert alert-secondary">
             <?php
             if (isset($_GET['ip'])) {
-                $ip = filter_input(INPUT_GET, 'ip', FILTER_SANITIZE_STRING);
+                $ip = filter_input(INPUT_GET, 'ip', FILTER_CALLBACK, ['options' => 'legacySanitizeString']);
                 ?>
 
                 <form name="access-server" id="access-server" action="http://<?= $ip; ?>/config.cgi" method="POST">

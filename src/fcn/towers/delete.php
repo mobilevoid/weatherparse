@@ -31,7 +31,7 @@
  */
 
 $towerSensorID = mysqli_real_escape_string($conn,
-    filter_input(INPUT_GET, 'sensor_id', FILTER_SANITIZE_STRING));
+    filter_input(INPUT_GET, 'sensor_id', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 $result = mysqli_query($conn, "DELETE FROM `towers` WHERE `sensor` = '$towerSensorID'");
 // If the insert Query was successful.
 if (mysqli_affected_rows($conn) === 1) {

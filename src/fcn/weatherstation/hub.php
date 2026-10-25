@@ -47,14 +47,14 @@ if ($_GET['sensor'] === $config->station->sensor_iris) {
 
         //Barometer
         $baromin = (float)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'baromin', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'baromin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         if ($config->station->baro_offset !== 0) {
             $baromin = $baromin + $config->station->baro_offset;
         }
 
         // Wind Speed
         $windSpeedMPH = (int)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'windspeedmph', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'windspeedmph', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Wind Direction
 
@@ -62,23 +62,23 @@ if ($_GET['sensor'] === $config->station->sensor_iris) {
         if ($config->station->reverse_wind === true) {
             require(APP_BASE_PATH . '/fcn/weather/inc/reverseWindDirection.php');
             $windDirection = (int)mysqli_real_escape_string($conn,
-                reverseWindDirection(filter_input(INPUT_GET, 'winddir', FILTER_SANITIZE_STRING)));
+                reverseWindDirection(filter_input(INPUT_GET, 'winddir', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
         } else {
             $windDirection = (int)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'winddir', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'winddir', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         }
 
         // Rainfall
         $rainIN = (float)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'rainin', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'rainin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         $dailyRainIN = (float)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'dailyrainin', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'dailyrainin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         //Other
         $battery = mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'battery', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'battery', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         $rssi = (int)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'rssi', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'rssi', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Enter 5N1x31 readings into DB
         $sql = "INSERT INTO `windspeed` (`speedMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH' , '$timestamp', '$device', '$source');
@@ -108,27 +108,27 @@ if ($_GET['sensor'] === $config->station->sensor_iris) {
 
         //Barometer
         $baromin = (float)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'baromin', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'baromin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         if ($config->station->baro_offset !== 0) {
             $baromin = $baromin + $config->station->baro_offset;
         }
 
         // Temperature
-        $tempF = (float)mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'tempf', FILTER_SANITIZE_STRING));
+        $tempF = (float)mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'tempf', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Wind Speed
         $windSpeedMPH = (int)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'windspeedmph', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'windspeedmph', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Humidity
         $humidity = (int)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'humidity', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'humidity', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         //Other
         $battery = mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'battery', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'battery', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         $rssi = (int)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'rssi', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'rssi', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Enter 5N1x38 readings into DB
         $sql = "INSERT INTO `windspeed` (`speedMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH' , '$timestamp', '$device', '$source');
@@ -171,31 +171,31 @@ elseif ($config->station->towers === true && ($_GET['mt'] === 'tower' || $_GET['
         // ProIn Specific Variables
         if ($_GET['mt'] === 'ProIn') {
             $tempF = (float)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'indoortempf', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'indoortempf', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
             $humidity = (int)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'indoorhumidity', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'indoorhumidity', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         } else {
             // Temperature
             $tempF = (float)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'tempf', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'tempf', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
             // Humidity
             $humidity = (int)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'humidity', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'humidity', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         }
 
         //Other
         $battery = mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'battery', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'battery', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         $rssi = (int)mysqli_real_escape_string($conn,
-            filter_input(INPUT_GET, 'rssi', FILTER_SANITIZE_STRING));
+            filter_input(INPUT_GET, 'rssi', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Check if this is the upload tower and save the baro. reading
         // If there is no primary sensor, this will be the only baro. reading
         if ($config->upload->sensor->id === $towerID) {
             //Barometer
             $baromin = (float)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'baromin', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'baromin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
             if ($config->station->baro_offset !== 0) {
                 $baromin = $baromin + $config->station->baro_offset;
             }

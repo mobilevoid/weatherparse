@@ -36,7 +36,7 @@ if (isset($_GET['do'])) {
     $uid = $_SESSION['uid'];
 
     $user = (int)mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'uid', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'uid', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
     // Can this user edit this uid?
     if ($_SESSION['admin'] !== true) {
@@ -50,11 +50,11 @@ if (isset($_GET['do'])) {
         }
     }
     $username = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'username', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $email = mysqli_real_escape_string($conn,
         strtolower(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL)));
     $admin = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'admin', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'admin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
     // Check for changes and for existing user with that username or email
     $oldInfo = mysqli_fetch_assoc(mysqli_query($conn,
@@ -133,7 +133,7 @@ else {
     if (isset($_GET['uid'])) {
         if ($_SESSION['admin'] === true) {
             $user = (int)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'uid', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         } else {
             // Redirect to edit account without uid set
             header("Location: /admin/account?edit");

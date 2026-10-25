@@ -30,7 +30,7 @@
  * @var mysqli $conn Global MYSQL Connection
  */
 
-$authToken = mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'token', FILTER_SANITIZE_STRING));
+$authToken = mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'token', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
 function checkToken($authToken): bool
 {

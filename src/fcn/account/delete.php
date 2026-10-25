@@ -31,7 +31,7 @@
  */
 
 $user = (int)mysqli_real_escape_string($conn,
-    filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING));
+    filter_input(INPUT_GET, 'uid', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
 // Don't delete the logged in user
 if ($user === $_SESSION['uid']) {

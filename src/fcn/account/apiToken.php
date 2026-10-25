@@ -30,7 +30,7 @@
  * @var mysqli $conn Global MYSQL Connection
  */
 
-$user = (int)mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING));
+$user = (int)mysqli_real_escape_string($conn, filter_input(INPUT_GET, 'uid', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
 // Can this user edit this uid?
 if ($_SESSION['admin'] !== true) {

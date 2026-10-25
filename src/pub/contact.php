@@ -52,7 +52,7 @@ if (isset($_GET['do'])) {
 
         require(APP_BASE_PATH . '/fcn/mailer.php');
 
-        $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+        $name = filter_input(INPUT_POST, 'name', FILTER_CALLBACK, ['options' => 'legacySanitizeString']);
         $email = strtolower(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $_SESSION['messages'] = '<div class="alert alert-danger text-center alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>Error: ' . $email . ' is not a valid email</div>';
@@ -64,9 +64,9 @@ if (isset($_GET['do'])) {
             header("Location: /");
             exit();
         }
-        $post_subject = filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_STRING);
+        $post_subject = filter_input(INPUT_POST, 'subject', FILTER_CALLBACK, ['options' => 'legacySanitizeString']);
         $subject = 'Contact Form Submission - ' . $post_subject;
-        $message = htmlentities(filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING));
+        $message = htmlentities(filter_input(INPUT_POST, 'message', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         $message = '<p><strong>You have received a new message from:</strong> <a href="mailto:' . $email . '?subject=' . $post_subject . '">' . $name . ' &lt;' . $email . '&gt;</a></p><p>' . $message . '</p>';
 

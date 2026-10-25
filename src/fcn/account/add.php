@@ -34,12 +34,12 @@
 // Process new user addition
 if (isset($_GET['do'])) {
     $username = mysqli_real_escape_string($conn,
-        strtolower(filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING)));
+        strtolower(filter_input(INPUT_POST, 'username', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
     $password = password_hash(filter_input(INPUT_POST, 'password', FILTER_UNSAFE_RAW), PASSWORD_DEFAULT);
     $email = mysqli_real_escape_string($conn,
         strtolower(filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL)));
     $admin = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'admin', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'admin', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
     // Check for existing user with that username or email
     $checkUsername = mysqli_num_rows(mysqli_query($conn,

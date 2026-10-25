@@ -44,7 +44,7 @@ else {
 
 // Success, begin authentication
 if ($response['success'] === true) {
-    $username = mysqli_real_escape_string($conn, filter_input(INPUT_POST, 'username', FILTER_SANITIZE_STRING));
+    $username = mysqli_real_escape_string($conn, filter_input(INPUT_POST, 'username', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $result = mysqli_query($conn,
         "SELECT * FROM `users` WHERE `username` = '$username' OR `email` = '$username'");
 

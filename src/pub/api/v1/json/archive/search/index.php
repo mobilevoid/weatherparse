@@ -38,7 +38,7 @@ header('Content-Type: application/json; charset=UTF-8'); // Set the header for J
 
 if (isset($_GET['start'])) {
     $startDate = strtotime(mysqli_real_escape_string($conn,
-        filter_input(INPUT_GET, 'start', FILTER_SANITIZE_STRING)));
+        filter_input(INPUT_GET, 'start', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
     $startDate = date('Y-m-d H:i:s', $startDate);
 } else {
     echo "Missing start date";
@@ -47,7 +47,7 @@ if (isset($_GET['start'])) {
 
 if (isset($_GET['end'])) {
     $endDate = strtotime(mysqli_real_escape_string($conn,
-        filter_input(INPUT_GET, 'end', FILTER_SANITIZE_STRING)));
+        filter_input(INPUT_GET, 'end', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
     $endDate = date('Y-m-d H:i:s', $endDate);
 } else {
     $endDate = date('Y-m-d H:i:s', strtotime('now'));
@@ -55,7 +55,7 @@ if (isset($_GET['end'])) {
 
 if (isset($_GET['sort'])) {
     $sort = mysqli_real_escape_string($conn,
-        strtoupper(filter_input(INPUT_GET, 'sort', FILTER_SANITIZE_STRING)));
+        strtoupper(filter_input(INPUT_GET, 'sort', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
     $sort = ' ORDER BY `reported` ' . $sort;
 } else {
     $sort = ' ORDER BY `reported` ASC';

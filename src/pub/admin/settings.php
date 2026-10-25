@@ -49,7 +49,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         }
 
         // Do some quick input filtering
-        $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+        $_POST = legacySanitizeArray(filter_input_array(INPUT_POST, FILTER_UNSAFE_RAW) ?: []);
 
         //Database
         $config->mysql->host = $_POST['mysql']['host'];

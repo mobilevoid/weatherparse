@@ -32,7 +32,7 @@
 
 // Check if password change form was submitted
 if (isset($_GET['do'])) {
-    $user = (int)mysqli_real_escape_string($conn, filter_input(INPUT_POST, 'uid', FILTER_SANITIZE_STRING));
+    $user = (int)mysqli_real_escape_string($conn, filter_input(INPUT_POST, 'uid', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
     // Can this user edit this uid?
     if ($_SESSION['admin'] !== true) {
@@ -105,7 +105,7 @@ else {
     if (isset($_GET['uid'])) {
         if ($_SESSION['admin'] === true) {
             $user = (int)mysqli_real_escape_string($conn,
-                filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING));
+                filter_input(INPUT_GET, 'uid', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
         } else {
             // Redirect to the password page without a uid set
             header("Location: /admin/account?password");

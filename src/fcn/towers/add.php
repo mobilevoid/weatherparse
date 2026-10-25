@@ -33,14 +33,14 @@
 // Insert the new tower into the database
 if (isset($_GET['do'])) {
     $towerName = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'name', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $towerSensorID = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'id', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'id', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $towerSensorID = sprintf('%08d', $towerSensorID); // Tower ID should be 8 digits
     $display = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'display', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'display', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $private = mysqli_real_escape_string($conn,
-        filter_input(INPUT_POST, 'private', FILTER_SANITIZE_STRING));
+        filter_input(INPUT_POST, 'private', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
     $result = mysqli_query($conn,
         "INSERT INTO `towers` (`name`, `sensor`, `arrange`, `private`) VALUES ('$towerName', '$towerSensorID', '$display', '$private')");
     if (!$result) {

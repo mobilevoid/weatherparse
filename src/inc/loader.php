@@ -68,6 +68,31 @@ if (!function_exists('mysqlClientCommand')) {
     }
 }
 
+if (!function_exists('legacySanitizeString')) {
+    /**
+     * What FILTER_SANITIZE_STRING did (deprecated in PHP 8.1): strip tags and encode quotes.
+     * Used with FILTER_CALLBACK so input handling stays exactly as before.
+     */
+    function legacySanitizeString($value)
+    {
+        if (!is_string($value)) {
+            return $value;
+        }
+        return str_replace(["'", '"'], ['&#39;', '&#34;'], strip_tags($value));
+    }
+
+    /**
+     * legacySanitizeString() applied to every value of a (nested) array, e.g. a whole submitted form.
+     */
+    function legacySanitizeArray(array $values): array
+    {
+        array_walk_recursive($values, function (&$value) {
+            $value = legacySanitizeString($value);
+        });
+        return $values;
+    }
+}
+
 // Set timezone
 if (date_default_timezone_get() != $config->site->timezone) {
     date_default_timezone_set($config->site->timezone);

@@ -45,7 +45,7 @@ ini_set('default_socket_timeout', 1);
 
 if ((isset($_GET['id']))) {
 
-    $mac = filter_var($_GET['id'], FILTER_SANITIZE_STRING);
+    $mac = filter_var($_GET['id'], FILTER_CALLBACK, ['options' => 'legacySanitizeString']);
 
     if (empty($config->station->access_mac) && empty($config->station->hub_mac)) {
         exit(syslog(LOG_EMERG, "(SYSTEM)[ERROR]: Device $mac is not configured"));
