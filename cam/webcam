@@ -122,6 +122,12 @@ flock -n 9 || { echo "Another webcam run is still busy; skipping"; exit 0; }
 # shellcheck source=/builds/acuparse/acuparse/cam/templates/config.env
 source /opt/acuparse/cam/config.env
 
+# "webcam cleanup" only removes images older than KEEP_DAYS (run once a day from cron).
+if [ "$1" == 'cleanup' ]; then
+  _cleanup
+  exit 0
+fi
+
 if [ "$MODE" == '' ]; then
   echo "Config Missing"
   exit 1
@@ -162,8 +168,6 @@ if [ "$MODE" == 'combined' ] || [ "$MODE" == 'remote' ]; then
   _moveImage
 
 fi
-
-_cleanup
 
 if [ "$MODE" == 'combined' ] || [ "$MODE" == 'local' ]; then
   echo "Cleaning LOCAL TMP"
