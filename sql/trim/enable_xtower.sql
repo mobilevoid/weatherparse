@@ -1,9 +1,10 @@
 /**
- * Acuparse - AcuRite Access/smartHUB and IP Camera Data Processing, Display, and Upload.
- * @copyright Copyright (C) 2015-2023 Maxwell Power
- * @author Maxwell Power <max@acuparse.com>
- * @link http://www.acuparse.com
+ * WeatherParse - AcuRite Access/smartHUB and IP Camera Data Processing, Display, and Upload.
+ * @copyright Copyright (C) 2026 WeatherParse contributors
+ * @link https://github.com/mobilevoid/weatherparse
  * @license AGPL-3.0+
+ *
+ * Based on Acuparse, Copyright (C) 2015-2023 Maxwell Power. Modified for WeatherParse in 2026.
  *
  * This code is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published

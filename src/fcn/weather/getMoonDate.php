@@ -1,11 +1,12 @@
 <?php
 
 /**
- * Acuparse - AcuRite Access/smartHUB and IP Camera Data Processing, Display, and Upload.
- * @copyright Copyright (C) 2015-2023 Maxwell Power
- * @author Maxwell Power <max@acuparse.com>
- * @link http://www.acuparse.com
+ * WeatherParse - AcuRite Access/smartHUB and IP Camera Data Processing, Display, and Upload.
+ * @copyright Copyright (C) 2026 WeatherParse contributors
+ * @link https://github.com/mobilevoid/weatherparse
  * @license AGPL-3.0+
+ *
+ * Based on Acuparse, Copyright (C) 2015-2023 Maxwell Power. Modified for WeatherParse in 2026.
  *
  * Original calculations and JavaScript code written by Keith Burnett <https://tinyurl.com/wn2tmp5a>
  * and initially ported into PHP by Matt Hackmann <dxprog.com>
