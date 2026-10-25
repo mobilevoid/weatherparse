@@ -35,26 +35,54 @@
 
 syslog(LOG_NOTICE, "(EXTERNAL){Windy}: Starting Update ...");
 
+/*
+ * Windy Stations API v2 (the v1 /pws/update path is retired).
+ * GET <url>?id=<station id>&ts=<unix time>&temp=..., station password as a Bearer token (never in the URL).
+ * Units: temp and dewpoint in C, wind and gust in m/s, winddir in degrees, pressure in Pa, rh in %.
+ * Windy accepts one observation per station every 5 minutes.
+ */
 $sql = "SELECT `timestamp` FROM `windy_updates` ORDER BY `timestamp` DESC LIMIT 1";
 $result = mysqli_fetch_assoc(mysqli_query($conn, $sql));
 $count = mysqli_num_rows(mysqli_query($conn, $sql));
 
-// Make sure update interval has passed since last update
-if ((strtotime($result['timestamp']) < strtotime('-5 minutes')) or ($count == 0)) {
-    // Build and send update
-    $windyQueryUrl = $config->upload->windy->url . '/' . $config->upload->windy->key;
-    $windyQuery = '?station=' . $config->upload->windy->station . '&tempf=' . $data->tempF . '&winddir=' . $data->windDEG . '&windspeedmph=' . $data->windSpeedMPH . '&baromin=' . $data->pressure_inHg . '&humidity=' . $data->relH . '&dewptf=' . $data->dewptF . '&rainin=' . $data->rainIN;
-    if ($config->station->device === 0 && $config->station->primary_sensor === 0) {
-        $windyQuery = $windyQuery . '&uv=' . $atlas->uvIndex;
+if (empty($config->upload->windy->id) || empty($config->upload->windy->key)) {
+    syslog(LOG_ERR, "(EXTERNAL){Windy}[ERROR]: Station ID and station password are required (Settings > Upload > Windy)");
+} // Make sure update interval has passed since last update
+elseif (($count == 0) || (strtotime($result['timestamp']) < strtotime('-5 minutes'))) {
+    $windyFields = [
+        'id' => $config->upload->windy->id,
+        'ts' => time(),
+        'temp' => round((float)$data->tempC, 1),
+        'dewpoint' => round((float)$data->dewptC, 1),
+        'rh' => (int)$data->relH,
+        'wind' => round((float)$data->windSpeedMPH * 0.44704, 1),
+        'gust' => round((float)$data->windGustMPH * 0.44704, 1),
+        'winddir' => ((int)$data->windDEG % 360 + 360) % 360,
+        'pressure' => (int)round((float)$data->pressure_inHg * 3386.389),
+        'softwaretype' => 'WeatherParse',
+    ];
+    $windyQuery = '?' . http_build_query($windyFields);
+    $ch = curl_init(rtrim($config->upload->windy->url, '/') . $windyQuery);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 15,
+        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $config->upload->windy->key],
+    ]);
+    $windyResponse = curl_exec($ch);
+    $windyStatus = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    curl_close($ch);
+    $windyQueryResult = "HTTP $windyStatus " . substr((string)$windyResponse, 0, 200);
+
+    // Save to DB (the query holds no password)
+    $windyQuerySql = mysqli_real_escape_string($conn, $windyQuery);
+    $windyResultSql = mysqli_real_escape_string($conn, $windyQueryResult);
+    mysqli_query($conn, "INSERT INTO `windy_updates` (`query`,`result`) VALUES ('$windyQuerySql', '$windyResultSql')");
+
+    if ($windyStatus === 200) {
+        syslog(LOG_NOTICE, "(EXTERNAL){Windy}: Query = $windyQuery | Response = $windyQueryResult");
+    } else {
+        syslog(LOG_WARNING, "(EXTERNAL){Windy}[WARN]: Query = $windyQuery | Response = $windyQueryResult");
     }
-    $windyQueryResult = file_get_contents($windyQueryUrl . $windyQuery);
-
-    // Save to DB
-    mysqli_query($conn,
-        "INSERT INTO `windy_updates` (`query`,`result`) VALUES ('$windyQuery', '$windyQueryResult')");
-
-    // Log it
-    syslog(LOG_NOTICE, "(EXTERNAL){Windy}: Query = $windyQuery | Response = $windyQueryResult");
 } // No new update to send
 else {
     // Log it

@@ -43,6 +43,8 @@ switch ($config->version->app) {
         if (isset($config->upload->myacurite->hub_url) && str_contains($config->upload->myacurite->hub_url, 'acuparse.com')) {
             $config->upload->myacurite->hub_url = 'http://hubapi.myacurite.com';
         }
+        // Windy retired API v1; v2 needs the station ID plus the station password (stored in windy->key)
+        @$config->upload->windy->url = 'https://stations.windy.com/api/v2/observation/update';
         // New settings
         @$config->station->spike_filter = true;
         @$config->station->spike_max_change = 10;

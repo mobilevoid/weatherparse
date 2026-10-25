@@ -189,7 +189,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         $config->upload->windy->id = (isset($_POST['upload']['windy']['id'])) ? $_POST['upload']['windy']['id'] : null;
         $config->upload->windy->key = (isset($_POST['upload']['windy']['key'])) ? $_POST['upload']['windy']['key'] : null;
         $config->upload->windy->station = (isset($_POST['upload']['windy']['station'])) ? $_POST['upload']['windy']['station'] : '0';
-        $config->upload->windguru->url = (isset($_POST['upload']['windy']['url'])) ? $_POST['upload']['windy']['url'] : 'https://stations.windy.com/pws/update';
+        $config->upload->windy->url = 'https://stations.windy.com/api/v2/observation/update';
 
         // Windguru
         $config->upload->windguru->enabled = (bool)$_POST['upload']['windguru']['enabled'];

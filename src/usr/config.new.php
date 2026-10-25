@@ -178,10 +178,10 @@ return (object)array(
         // Windy Settings
         'windy' => (object)array(
             'enabled' => false, // true or false
-            'id' => '', // ID
-            'key' => '', // Station API Key
-            'station' => '0', // Station ID
-            'url' => 'https://stations.windy.com/pws/update', // Windy API path
+            'id' => '', // Windy station ID (My Stations > station)
+            'key' => '', // Windy station password (My Stations > station > Connection)
+            'station' => '0', // Unused since Windy API v2 (kept for old configs)
+            'url' => 'https://stations.windy.com/api/v2/observation/update', // Windy Stations API v2
         ),
 
         // Windguru Settings

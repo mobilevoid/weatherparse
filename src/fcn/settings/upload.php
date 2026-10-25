@@ -672,49 +672,35 @@
                                     </div>
                                     <div class="row mt-3">
                                         <div class="col-3">
-                                            <label class="col-form-label" for="windy-updates-id">ID</label>
+                                            <label class="col-form-label" for="windy-updates-id">Station ID</label>
                                         </div>
                                         <div class="col">
                                             <input type="text" class="form-control"
                                                    name="upload[windy][id]"
                                                    id="windy-updates-id"
                                                    maxlength="35"
-                                                   placeholder="ID"
+                                                   placeholder="Station ID"
                                                 <?= ($config->upload->windy->enabled === false) ? 'disabled="disabled"' : false; ?>
                                                    value="<?= $config->upload->windy->id; ?>">
-                                            <small id="wc-updates-id-help" class="form-text text-muted">Your <a
-                                                        href="https://stations.windy.com/stations">Windy</a> ID</small>
+                                            <small id="windy-updates-id-help" class="form-text text-muted">From <a
+                                                        href="https://stations.windy.com/stations">Windy My Stations</a>, station details</small>
                                         </div>
                                     </div>
                                     <div class="row mt-2">
-                                        <div class="col-3">
-                                            <label class="col-form-label" for="windy-updates-station">Station ID</label>
-                                        </div>
-                                        <div class="col">
-                                            <input type="text" class="form-control"
-                                                   name="upload[windy][station]"
-                                                   id="windy-updates-station"
-                                                   maxlength="1"
-                                                <?= ($config->upload->windy->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->windy->station; ?>">
-                                            <small id="windy-updates-key-help" class="form-text text-muted">Your
-                                                Windy Station ID. Default 0.
-                                            </small>
-                                        </div>
                                         <div class="row mt-2">
                                             <div class="col-3">
-                                                <label class="col-form-label" for="windy-updates-key">API Key</label>
+                                                <label class="col-form-label" for="windy-updates-key">Station Password</label>
                                             </div>
                                             <div class="col">
-                                                <input type="text" class="form-control"
+                                                <input type="password" class="form-control" autocomplete="off"
                                                        name="upload[windy][key]"
                                                        id="windy-updates-key"
                                                        maxlength="150"
-                                                       placeholder="XXX-API-KEY-XXX"
+                                                       placeholder="Station password"
                                                     <?= ($config->upload->windy->enabled === false) ? 'disabled="disabled"' : false; ?>
                                                        value="<?= $config->upload->windy->key; ?>">
-                                                <small id="windy-updates-key-help" class="form-text text-muted">Your
-                                                    Windy API Key.
+                                                <small id="windy-updates-key-help" class="form-text text-muted">My Stations &gt; station &gt;
+                                                    Connection (Windy Stations API v2)
                                                 </small>
                                             </div>
                                         </div>
