@@ -1,9 +1,9 @@
-ACUPARSE OPENWEATHER UPDATER GUIDE
-==================================
+WEATHERPARSE OPENWEATHER UPDATER GUIDE
+======================================
 
 Open Weather Map is an API based service. You will need a basic understanding of API's to use OpenWeather Map data.
 
-Acuparse will upload your data, but does not facilitate the viewing of that data. You will need to use the provided API
+WeatherParse will upload your data, but does not facilitate the viewing of that data. You will need to use the provided API
 to query your data. See the Open Weather Map API Guide (https://openweathermap.org/api) for more details!
 
 Registration

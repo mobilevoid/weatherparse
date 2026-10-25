@@ -1,5 +1,5 @@
-ACUPARSE PWS WEATHER UPDATER GUIDE
-==================================
+WEATHERPARSE PWS WEATHER UPDATER GUIDE
+======================================
 
 Registration
 ============

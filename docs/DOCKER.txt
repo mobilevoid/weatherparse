@@ -1,256 +1,91 @@
-ACUPARSE DOCKER INSTALLATION GUIDE
-==================================
+WEATHERPARSE DOCKER GUIDE
+=========================
 
-Docker Pulls (https://img.shields.io/docker/pulls/acuparse/acuparse)
+Note:
+    WeatherParse does not publish Docker images yet, and the Acuparse Docker images and installer scripts do not apply
+    to WeatherParse. Build the image locally from the Dockerfile in this repository. The supported install method is
+    the manual install in docs/INSTALL.txt.
 
-The Acuparse container itself does NOT contain a local database.
-Use acuparse/mariadb for best compatibility.
+The WeatherParse container includes the application and web server. It does NOT include a database; run MariaDB
+separately (for example as a second container) and give the WeatherParse container access to it.
 
-The Acuparse container image is available via Docker Hub (acuparse/acuparse) as well as the GitLab Container
-Registry (registry.gitlab.com/acuparse/acuparse). A docker-compose file and a convenient helper script are available
-from the Acuparse repo and are the only supported method of running Acuparse in containers. See below for automatic and
-manual install instructions.
+Building the Image
+==================
 
-The Acuparse image includes the Acuparse application and web server. The Acuparse image does not include a database. The
-included docker-compose file will run a Mariadb database image (acuparse/mariadb). If you do not use the compose file,
-you'll need to arrange to run a database and give the Acuparse container access to it. The compose file will make
-Acuparse available on port 80 and 443 of the host system. A self-signed certificate will be used for https but Let's
-Encrypt can be enabled when needed.
+Install Docker (https://docs.docker.com/get-docker/), then from a checkout of this repository:
 
-Docker Compose
-==============
+    git clone https://github.com/mobilevoid/weatherparse.git
+    cd weatherparse
+    docker build -t weatherparse:local .
 
-Use Docker Compose to run Acuparse in production. A script is available to set up your host.
-
-Installation
-============
-
-Automated Installation
-----------------------
-
-- Download the installer.
-
-        curl -O https://gitlab.com/acuparse/installer/-/raw/master/install_docker
-
-- Run the installer
-    - On a fresh Ubuntu/Debian system without Docker or Compose
-
-          sudo bash install_docker full | tee ~/acuparse.log
-
-    - On an existing system with Docker installed but not Compose
-
-         sudo bash install_docker compose | tee ~/acuparse.log
-
-    - On an existing system with Docker and Compose installed.
-        - MacOS users should install Docker and Compose manually, then run the command below.
-
-             sudo bash install_docker | tee ~/acuparse.log
-
-- Add your user to the Docker group
-
-        sudo usermod -a -G docker $USER
-
-Info:
-    The installer attempts to configure your environment variables automatically. Confirm your configuration
-    variables are set properly in /opt/acuparse/acuparse.env. Also, ensure your TZ variable is set.
-
-Manual Installation
--------------------
-
-Install Docker and Docker Compose on your system before continuing.
-
-- Get Docker (https://docs.docker.com/get-docker/)
-- Get Docker Compose (https://docs.docker.com/compose/install/)
-
-- Download and install the Acuparse compose files to /opt/acuparse/.
-    - Supporting files for Docker Compose can also be found in
-      the Acuparse Installer Repository (https://gitlab.com/acuparse/installer/-/tree/master/docker).
-
-        curl 'https://gitlab.com/acuparse/installer/-/archive/master/installer-master.zip?path=docker' -o acuparse_docker.zip`
-
-You MUST edit the acuparse.env file to set your SQL password and Timezone before use!
-
-If you are using a custom environment, ensure at the very least, you set the variables from acuparse.env in your
-config:
-
-- Acuparse Environment Template (https://gitlab.com/acuparse/installer/-/blob/master/docker/acuparse.env)
+The container starts with the command weatherparse (see .docker/docker-entrypoint) and expects these environment
+variables, at the very least: MYSQL_HOSTNAME, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD and TZ.
+Read .docker/docker-entrypoint for the full list and their defaults.
 
 SSL Certificates
 ================
 
-Acuparse includes a snake oil cert in the container that is fine for most uses. If you require a valid certficate, you
-can enable Let's Encrypt using environment variables outlined in the template above.
+The container includes a self-signed (snake oil) certificate that is fine for most uses, including the AcuRite Access.
+Let's Encrypt can be enabled with the LE_ environment variables read by .docker/docker-entrypoint.
 
 Ports
 =====
 
-The Acuparse APP container will listen on ports 80 and 443 by default. The AcuRite Access needs to send data to port 443
-and this cannot be changed. If you have multiple containers and ports in use, suggest running a
-load balancer (https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer) to route traffic to your
-container.
-
-Helper Script
-=============
-
-A script is installed automatically to help assist with running your containers. If you installed the Docker Compose
-files manually, copy the script to /usr/local/bin.
-
-    mv acuparse /usr/local/bin
-    chmod +x /usr/local/bin/acuparse
-
-Starting
---------
-
-    acuparse start
-
-Restarting
-----------
-
-    acuparse restart
-
-Stopping
---------
-
-    acuparse stop
-
-To REMOVE ALL DATA and start over
-
-    acuparse destroy
-
-Updating
---------
-
-(MUST BE RUN AS ROOT/SUDO)
-
-Also updates the run script and the docker-compose config.
-
-    sudo acuparse update
-
-To update Docker Compose, run the update above, then run
-
-    sudo acuparse update_compose
-
-Logs
-----
-
-    acuparse logs
-
-Shell/Console
--------------
-
-Acuparse
-
-    acuparse console
-
-Database
-
-    acuparse dbconsole
-
-Status
-------
-
-    acuparse status
+The container listens on ports 80 and 443. The AcuRite Access needs to send data to port 443 and this cannot be
+changed. If you run several web containers on one host, put a load balancer or reverse proxy in front
+(https://docs.nginx.com/nginx/admin-guide/load-balancer/http-load-balancer).
 
 Volumes
 =======
 
-You must configure volumes for your SQL database, or it will be lost on container restart.
+You must keep your SQL database on a volume, or it will be lost when the container is recreated. Also keep these
+paths on volumes or bind mounts (https://docs.docker.com/storage/bind-mounts):
 
-The default compose file will do this for you.
-
-Local Bind Mounts (https://docs.docker.com/storage/bind-mounts)
----------------------------------------------------------------
-
-The following mounts are created in /opt/acuparse/volumes
-
-- /opt/acuparse/volumes/webcam
-    - Copy your webcam images to this directory for use in Acuparse.
-    - See Webcam details below
-- /opt/acuparse/volumes/backups
-    - Acuparse Config and Database backups.
-    - Also, mounted to the Database and App containers; if you need to perform a restore.
-    - This directory should not be used to store user files; aside from the backup tasks.
-        - The backup task will clear all files in this directory.
-
-Docker Volumes (https://docs.docker.com/storage/volumes)
---------------------------------------------------------
-
-- acuparse_config
-    - Holds your configuration data.
-- acuparse_ssl
-    - Contains any Let's Encrypt Certificates.
+- /opt/weatherparse/src/usr: your configuration
+- /opt/weatherparse/src/pub/img/cam: webcam images
+- /var/opt/weatherparse/backups: config and database backups (the backup task clears old files here; do not store
+  other files in it)
 
 Webcam
 ======
 
-When using a webcam with Acuparse, run the webcam script on the docker host. Then copy the images
-to /opt/acuparse/volumes/webcam and update the default location in your config.env.
-
-The container is not setup to run the webcam scripts directly or be accessed via SSH.
-
-You can download the webcam scripts as a
-
-- ZIP File (https://gitlab.com/acuparse/acuparse/-/archive/stable/acuparse-stable.zip?path=cam/templates)
-- TAR.GZ File (https://gitlab.com/acuparse/acuparse/-/archive/stable/acuparse-stable.tar.gz?path=cam/templates)
-- Text (https://gitlab.com/acuparse/acuparse/-/tree/stable/cam/templates)
+The container is not set up to run the webcam script or to be reached over SSH. Run the webcam script on the Docker
+host (copy the cam folder from this repository), and copy the images into the webcam volume. Set the paths in
+cam/config.env accordingly.
 
 Email
 =====
 
-For sending outbound email, using mailgun (https://www.mailgun.com/) is the recommended option.
-
-The Docker image has support for Nullmailer (https://wiki.debian.org/nullmailer), if you need to use a custom SMTP
-server.
-
-Configure Nullmailer in your acuparse.env file.
-
-    # Enable SMTP Relay?
-    SMTP_RELAY=1
-
-    # SMTP Smarthost
-    # GMAIL = smtp.gmail.com smtp --port=587 --auth-login --user=<GMAIL_ADDRESS> --pass=<GMAIL_PASSWORD> --starttls
-    SMTP_HOST='mail smtp'
-
-If you don't have a local SMTP server, you can add one to your docker compose config.
-
-Example using namshi/smtp (https://hub.docker.com/r/namshi/smtp).
-
-      mail:
-        image: namshi/smtp
-        restart: always
+For outbound email, Mailgun (https://www.mailgun.com/) is the simplest option. The image also supports Nullmailer
+(https://wiki.debian.org/nullmailer) for a custom SMTP server, configured with the SMTP_RELAY and SMTP_HOST environment
+variables read by .docker/docker-entrypoint.
 
 Backup/Restore
 ==============
 
-The automated backup script will run once daily and save backups to /opt/acuparse/volumes/backups on your host.
+The backup script (cron/backup) runs once a day in the container and saves backups to /var/opt/weatherparse/backups.
 
-Backup files are kept for 7 days by default and can be changed by modifying KEEP_BACKUPS_FOR in your acuparse.env
-file. You can also disable backups by setting BACKUPS_ENABLED=0 in acuparse.env.
+Backup files are kept for 7 days by default; change this with KEEP_BACKUPS_FOR. Disable backups with BACKUPS_ENABLED=0.
 
 Restore Database
 ----------------
 
-Connect to your acuparse console and extract the archive
+Open a shell in the container and extract the archive:
 
-    tar -xvf /var/opt/acuparse/backups/<BACKUPDATE>.tar.gz
+    tar -xvf /var/opt/weatherparse/backups/<BACKUPDATE>.tar.gz
 
-Then connect to your acuparse dbconsole and restore your database
+Then restore the database (MYSQL_PWD keeps the password off the command line):
 
-    mysql -p$MYSQL_ROOT_PASSWORD acuparse < mysql.sql
+    MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -h"$MYSQL_HOSTNAME" "$MYSQL_DATABASE" < mysql.sql
 
 Restore Config File
 -------------------
 
-Connect to your acuparse console and extract the archive located
-in tar -xvf /var/opt/acuparse/backups/<BACKUPDATE>.tar.gz.
+Extract the archive as above, then copy your config file back:
 
-Copy your config file back cp config.php /opt/acuparse/src/usr/config.php
+    cp config.php /opt/weatherparse/src/usr/config.php
 
-Legacy Images
-=============
+Realtime (RTL)
+==============
 
-Besides the latest image built on Debian Bullseye, Acuparse also ships a Debian Buster image for backwards compatability.
-
-To use this image, set your Acuparse Container image in your compose file to
-
-- acuparse/acuparse:buster or acuparse/acuparse:<VERSION>-buster
+Realtime updates use the RTL Relay, a separate project from Acuparse (acuparse/rtl-relay). See docs/REALTIME.txt.

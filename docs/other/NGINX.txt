@@ -1,8 +1,8 @@
-ACUPARSE NGINX PROXY CONFIG GUIDE
-=================================
+WEATHERPARSE NGINX PROXY CONFIG GUIDE
+=====================================
 
 When using a domain, install NGINX to make redirects easier. It also keeps your custom domain configuration separate from
-the Acuparse config.
+the WeatherParse config.
 
 This is not generally required, as Apache should listen to everything by default.
 
@@ -14,8 +14,8 @@ This is not generally required, as Apache should listen to everything by default
 
     nano /etc/nginx/sites-available/reverse.conf
 
-**Replace <domain> with your domain and <external_ip> with your external IP address. Update <certificate> and <key>
-with the path to your certificate and key.**
+Important: replace <domain> with your domain and <external_ip> with your external IP address. Update <certificate>
+and <key> with the path to your certificate and key.
 
     server {
         listen 443 ssl;
@@ -45,7 +45,7 @@ with the path to your certificate and key.**
         listen 80;
 
         # Site Directory
-        root /opt/acuparse/src/public;
+        root /opt/weatherparse/src/pub;
 
         # Domain
         server_name <external_ip> www.<domain>;
@@ -85,13 +85,13 @@ with the path to your certificate and key.**
 
 - Update Apache site config
 
-    nano /etc/apache2/sites-available/acuparse.conf
+    nano /etc/apache2/sites-available/weatherparse.conf
 
 - Change <VirtualHost :80> to <VirtualHost :8080>
 
 - Disable Apache SSL site
 
-    a2dissite acuparse-ssl.conf
+    a2dissite weatherparse-ssl
 
 - Tell Apache where to get the real visitor IP
 
@@ -99,7 +99,11 @@ with the path to your certificate and key.**
 
 - Add your external IP to RPAFproxy_ips:
 
-    nano /etc/apache2/mods-available/rpaf.conf`, `RPAFproxy_ips 127.0.0.1 <external_ip> ::1
+    nano /etc/apache2/mods-available/rpaf.conf
+
+  and set:
+
+    RPAFproxy_ips 127.0.0.1 <external_ip> ::1
 
 - Enable RPAF:
 

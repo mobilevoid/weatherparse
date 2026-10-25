@@ -1,5 +1,10 @@
-ACUPARSE VERSION 3.0 UPDATE GUIDE
-=================================
+ACUPARSE VERSION 3.0 UPDATE GUIDE (HISTORICAL)
+==============================================
+
+Note:
+    Historical upgrade notes from Acuparse, kept for installs that are still on very old Acuparse versions.
+    The Acuparse installer scripts, Docker images and helper commands mentioned here are not part of WeatherParse
+    and may no longer be available. Current instructions: docs/UPDATING.txt.
 
 Version 3.0 includes major updates and database changes! If you are currently using the Webcam Scripts and or the
 JSON/HTML data endpoints, you will need to update your scripts to reflect the new data locations.
@@ -23,13 +28,13 @@ Docker Support
 Initial Docker support comes with Version 3. Note that this is still in early support and there may be bugs lingering.
 Please open a support ticket for any trouble using the Docker Container or Docker Compose.
 
-The image is hosted on Docker Hub (https://hub.docker.com/r/acuparse/acuparse)
+The Acuparse image was hosted on Docker Hub as acuparse/acuparse.
 
 API and JSON Data
 -----------------
 
 The JSON data endpoint has been moved to the API. You must update any scripts you are using to get data from the new
-API. For details see docs/API.txt (https://docs.acuparse.com/API).
+API. For details see docs/API.txt.
 
 Browser/Proxy Timeouts
 ----------------------
@@ -75,7 +80,7 @@ Updating
 
 - You must run the updater script to update your local config for Version 3.
 
-        curl -O https://gitlab.com/acuparse/installer/-/raw/master/resources/update_v3 && sudo bash update_v3 | tee ~/acuparse.log
+        (Acuparse installer script, no longer available)
 
 - After running the update script, visit your Acuparse install to complete the update.
 
@@ -84,7 +89,7 @@ Migrate from 2.10 based local install to a Container-based install
 
 The v3 update script is not required when migrating to a container.
 
-You must review the Docker Install Guide (https://docs.acuparse.com/DOCKER/) to properly configure your containers
+You must review the Docker Guide (docs/DOCKER.txt) to properly configure your containers
 
 When using Docker Compose the /var/opt/acuparse/backups directory inside the DB/APP containers is linked
 to /opt/acuparse/volumes/backups

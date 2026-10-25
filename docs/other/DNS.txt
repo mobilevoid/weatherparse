@@ -1,45 +1,49 @@
-ACUPARSE DNS REDIRECT GUIDE
-===========================
-
-You will need to redirect your DNS so that your Access/smartHub uploads your data to Acuparse and not MyAcuRite directly.
-Note: Access users can use the included script to modify the Access upload server instead of, or as well as, redirecting DNS.
-
-See /admin/access_server once logged into your site.
-
-You must use a hostname for the upload server. IP addresses will not work!
-
-External Connection to Acuparse
+WEATHERPARSE DNS REDIRECT GUIDE
 ===============================
 
-If your smartHUB/Access is connected to your local network and sending readings to MyAcuRite directly, you will need to
-install a DNS server on your local network.
+Your Access/smartHUB sends its readings to an AcuRite hostname (atlasapi.myacurite.com for the Access). To have them
+arrive at WeatherParse instead, that hostname must point at your WeatherParse server.
+
+Note:
+    Access users can instead (or as well) change the Access upload server with the tool at /admin/access once logged
+    into your site. You must use a hostname for the upload server; IP addresses will not work.
+
+Note:
+    Current Access firmware ignores the DNS server handed out by DHCP and asks 8.8.4.4 directly. A DNS override only
+    works if those queries also reach your DNS server, for example by redirecting the Access's DNS traffic on your
+    router or firewall, or with the iptables rules in the Raspberry Pi direct connect setup. See docs/TROUBLESHOOTING.txt,
+    section "Hardcoded DNS Servers".
+
+External Connection to WeatherParse
+===================================
+
+If your Access/smartHUB is on your local network, create a local DNS override for atlasapi.myacurite.com pointing at
+your WeatherParse server.
 
 DNS Servers
 -----------
 
-- Use something like Pi-hole® (https://pi-hole.net).
-- Install Bind9, unbound, etc on a device installed locally on your network.
+- Pi-hole (https://pi-hole.net), with a local DNS record.
+- Bind9, Unbound, dnsmasq or similar on a device on your network.
 
 Firewalls
 ---------
 
-Use a firewall that allows you to customise your DNS.
+A firewall that lets you customise DNS (and redirect stray DNS traffic), such as:
 
-- pfSense® (https://www.pfsense.org/)
-- OPNsense® (https://opnsense.org/)
+- pfSense (https://www.pfsense.org/)
+- OPNsense (https://opnsense.org/)
 
-Direct Connection to Acuparse
-=============================
+Direct Connection to WeatherParse
+=================================
 
-You can use your Acuparse server to redirect your DNS locally. To use this method, connect your smartHUB/Access directly
-to an ethernet interface on the Acuparse system.
+You can connect the Access directly to an Ethernet port on the WeatherParse server and let the server answer its DNS.
+See docs/other/RPI_DIRECT_CONNECT.txt.
 
-MyAcuRite Upload URL's
-----------------------
+MyAcuRite Uploads
+-----------------
 
-Redirecting the DNS locally will cause issues with uploads to MyAcuRite. The redirect will cause Acuparse to upload data
-to its self. In this case, you should select the secondary urls in the MyAcuRite config settings. Acuparse will then upload
-readings to MyAcuRite as expected.
-
-- Secondary DNS entries point to the Acuparse domain hosted on Cloudflare.
-Records are synced with AcuRite (https://gitlab.com/acuparse/dns_sync/-/pipelines) on a regular basis.
+With a local redirect, the WeatherParse server itself would resolve atlasapi.myacurite.com to its own address.
+WeatherParse avoids this: when it forwards a reading to MyAcuRite it looks the address up through DNS directly (not
+/etc/hosts) and never forwards to an address that belongs to the server. No "secondary" upload URL is needed; the old
+Acuparse relay (atlasapi.acuparse.com) is no longer used.

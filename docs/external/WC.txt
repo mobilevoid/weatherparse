@@ -1,5 +1,5 @@
-ACUPARSE WEATHERCLOUD UPDATER GUIDE
-===================================
+WEATHERPARSE WEATHERCLOUD UPDATER GUIDE
+=======================================
 
 Registration
 ============

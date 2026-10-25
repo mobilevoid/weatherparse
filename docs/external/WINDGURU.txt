@@ -1,5 +1,5 @@
-ACUPARSE WINDGURU UPDATER GUIDE
-===============================
+WEATHERPARSE WINDGURU UPDATER GUIDE
+===================================
 
 Registration
 ============

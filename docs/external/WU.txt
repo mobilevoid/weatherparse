@@ -1,5 +1,5 @@
-ACUPARSE WEATHER UNDERGROUND UPDATER GUIDE
-==========================================
+WEATHERPARSE WEATHER UNDERGROUND UPDATER GUIDE
+==============================================
 
 Registration
 ============

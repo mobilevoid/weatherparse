@@ -1,31 +1,49 @@
 CONTRIBUTING
 ============
 
-If you're interested in contributing to Acuparse, the first step is joining the development mailing list.
+Contributions to WeatherParse are welcome through GitHub:
 
-Join the mailing list (https://lists.acuparse.com).
+- Report bugs and request features with GitHub Issues (https://github.com/mobilevoid/weatherparse/issues).
+- Send changes as pull requests against the main branch (https://github.com/mobilevoid/weatherparse).
+
+Guidelines
+==========
+
+- Keep documentation in plain text (.txt). No Markdown.
+- Never include credentials, API keys, station IDs, MAC addresses, personal addresses or domains in code, docs, tests
+  or commit messages.
+- Test on PHP 8.2 or newer (Debian 12) and, if you can, PHP 8.4 (Debian 13). php -l on every changed PHP file is the
+  minimum.
+- Keep each pull request focused on one change and describe what you tested.
 
 Branches
 ========
 
-- stable: Contains the most recent public stable release.
-- dev: All development ends up in this branch, pending release.
-Either directly or via Merge from a feature branch.
+- main: the current development line. Releases are tagged from main.
 
 Releases
 ========
 
-Code released by merging dev into stable and tagging the merge commit.
+Releases are made by tagging a commit on main (vX.Y.Z) and publishing a GitHub release for the tag. The in-app update
+check reads the latest GitHub release.
 
 Versioning
 ==========
 
-Acuparse follows the Semantic Versioning guidelines. Releases will be numbered in the following format:
+WeatherParse follows the Semantic Versioning guidelines. Releases are numbered in the following format:
 
-    constructed within the following guidelines:
+    <major>.<minor>.<patch>
 
-    - Breaking backward compatibility or major SQL changes bumps the major (and resets the minor and patch).
-    - New additions and/or SQL changes without breaking backward compatibility bumps the minor (and resets the patch).
-    - Bug fixes, minor and misc changes bumps the patch.
+constructed within the following guidelines:
 
-    For more information on SemVer, visit [semver.org](http://www.semver.org).
+- Breaking backward compatibility or major SQL changes bumps the major (and resets the minor and patch).
+- New additions and/or SQL changes without breaking backward compatibility bumps the minor (and resets the patch).
+- Bug fixes, minor and misc changes bumps the patch.
+
+For more information on SemVer, visit semver.org (https://semver.org).
+
+License
+=======
+
+WeatherParse is licensed under the AGPL-3.0+ and is based on Acuparse by Maxwell Power. By contributing you agree that
+your contribution is released under the same license.

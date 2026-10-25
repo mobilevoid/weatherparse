@@ -1,5 +1,5 @@
-ACUPARSE API GUIDE
-==================
+WEATHERPARSE API GUIDE
+=====================
 
 Current API version: v1
 
@@ -84,9 +84,9 @@ PHP
 Main Readings
 -------------
 
-    function getWeatherData($acuparseURL)
+    function getWeatherData($weatherparseURL)
     {
-        $w = file_get_contents($acuparseURL . '/api/v1/json/dashboard?main');
+        $w = file_get_contents($weatherparseURL . '/api/v1/json/dashboard?main');
         $w = json_decode($w);
         return $w->main;
     }
@@ -182,9 +182,9 @@ $windGustDEG, $windGustDIR, $windGustMPH, $windGustKMH, $windGustPeakMPH, $windG
 Tower Readings
 --------------
 
-    function getTowerSensorData($acuparseURL, $acuparseToken)
+    function getTowerSensorData($weatherparseURL, $weatherparseToken)
     {
-        $t = file_get_contents($acuparseURL . '/api/v1/json/tower?token=' . $acuparseToken);
+        $t = file_get_contents($weatherparseURL . '/api/v1/json/tower?token=' . $weatherparseToken);
         $t = json_decode($t);
         return $t->towers;
     }

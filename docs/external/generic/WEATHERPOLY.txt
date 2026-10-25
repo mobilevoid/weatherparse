@@ -1,5 +1,5 @@
-ACUPARSE WEATHERPOLY UPLOAD GUIDE
-=================================
+WEATHERPARSE WEATHERPOLY UPLOAD GUIDE
+=====================================
 
 https://github.com/bpaauwe/WeatherPoly
 
@@ -9,7 +9,8 @@ Configuration
 =============
 
 1. Change enabled to true
-1. Configure the URL with your Polyglot's IP/Host and the port number.
+1. Configure the URL with your Polyglot's IP/Host and the port number, for example http://<polyglot ip>:8080/acuparse
+   (the /acuparse path is the address WeatherPoly itself listens on; keep it as is).
 
 Mappings
 ========

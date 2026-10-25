@@ -1,5 +1,11 @@
-ACUPARSE WINDY UPDATER GUIDE
-============================
+WEATHERPARSE WINDY UPDATER GUIDE
+================================
+
+Warning:
+    Windy has changed its station API: the old upload address (stations.windy.com/pws/update) now redirects.
+    The WeatherParse Windy uploader is being updated to Windy's current API; check the WeatherParse changelog
+    (CHANGELOG.txt) before relying on Windy uploads. Windy's registration pages below may also have moved; follow
+    Windy's current instructions if they differ.
 
 Registration
 ============

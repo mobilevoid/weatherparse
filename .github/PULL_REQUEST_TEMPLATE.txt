@@ -1,5 +1,10 @@
-Thanks for taking the time to contribute to Acuparse!
+Thanks for contributing to WeatherParse!
 
-We encourage you to open a Merge Request in the GitLab repository. You can log into GitLab.com using your GitHub account.
+What does this change?
 
-https://gitlab.com/acuparse/acuparse/-/merge_requests/new
+How did you test it? (PHP version, OS, which pages or uploaders you checked)
+
+Checklist:
+- php -l passes on every changed PHP file
+- No credentials, API keys, station IDs, MAC addresses, personal addresses or domains included
+- Documentation updated (plain text .txt files only)
