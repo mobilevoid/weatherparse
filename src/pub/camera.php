@@ -37,6 +37,12 @@ header('Cache-Control: max-age=180, immutable');
 
 // Check that camera is enabled
 if ($config->camera->enabled === true) {
+    // Camera 1 lives in img/cam, the optional second camera in img/cam2 (CAMERA2_HOST in cam/config.env)
+    $hasCam2 = is_dir('img/cam2');
+    $camNumber = ($hasCam2 && ($_GET['cam'] ?? '1') === '2') ? 2 : 1;
+    $camDir = $camNumber === 2 ? 'img/cam2/' : 'img/cam/';
+    $camParam = $camNumber === 2 ? '&cam=2' : '';
+    $camNames = [1 => $config->camera->name ?? 'Camera 1', 2 => $config->camera->name2 ?? 'Camera 2'];
 
     // Archive
     if (isset($_GET['archive'])) {
@@ -57,24 +63,21 @@ if ($config->camera->enabled === true) {
 
         // Check the cam directory for images
 
-        $cam_dir = scandir('img/cam/');
-
-        $last_dir = current(array_slice($cam_dir,
-            -2)); // Latest directory should be the 2nd last value. Since latest.jpg should be the last.
-        $cam_dir = $cam_dir[3]; // Oldest images should be the 3rd value. Since .=0 ..=1 and .gitkeep=2 are first.
-        // No images? make today the latest day.
-        $cam_dir_has_images = true;
-        if ($cam_dir === null) {
-            $cam_dir = date('Y-m-d');
-            $cam_dir_has_images = false;
-        }
+        // Date folders (YYYY-MM-DD) of this camera, oldest first
+        $camDays = is_dir($camDir) ? array_values(array_filter(scandir($camDir), fn($d) => preg_match('/^\d{4}-\d{2}-\d{2}$/', $d))) : [];
+        $cam_dir_has_images = count($camDays) > 0;
+        $cam_dir = $cam_dir_has_images ? $camDays[0] : date('Y-m-d'); // oldest day
+        $last_dir = $cam_dir_has_images ? end($camDays) : date('Y-m-d'); // newest day
 
         // Today's Date
         $today = date('Y-m-d');
         ?>
         <div class="row">
             <div class="col">
-                <h1 class="page-header">Weather Camera Archive</h1>
+                <h1 class="page-header">Weather Camera Archive<?= $hasCam2 ? ': ' . htmlspecialchars($camNames[$camNumber]) : ''; ?></h1>
+                <?php if ($hasCam2) { ?>
+                    <p><a href="/camera?archive<?= $camNumber === 2 ? '' : '&cam=2'; ?>&date=<?= $date; ?>">Show <?= htmlspecialchars($camNames[$camNumber === 2 ? 1 : 2]); ?></a></p>
+                <?php } ?>
             </div>
         </div>
 
@@ -87,11 +90,11 @@ if ($config->camera->enabled === true) {
                         false; // Don't display backward button
                     } elseif ($backward_date > $today) {
                         ?>
-                        <a href="/camera?archive&date=<?= $last_dir; ?>" title="backward"><h3><i class="fas fa-backward"
+                        <a href="/camera?archive&date=<?= $last_dir; ?><?= $camParam; ?>" title="backward"><h3><i class="fas fa-backward"
                                                                                 aria-hidden="true"></i></h3></a>
                         <?php
                     } else { ?>
-                        <a href="/camera?archive&date=<?= $backward_date; ?>" title="backward"><h3><i class="fas fa-backward"
+                        <a href="/camera?archive&date=<?= $backward_date; ?><?= $camParam; ?>" title="backward"><h3><i class="fas fa-backward"
                                                                                      aria-hidden="true"></i></h3>
                         </a>
                     <?php } ?>
@@ -102,6 +105,7 @@ if ($config->camera->enabled === true) {
                         <div class="row">
                             <div class="col-auto mx-auto">
                                 <input type="hidden" name="archive">
+                                <?php if ($camNumber === 2) { ?><input type="hidden" name="cam" value="2"><?php } ?>
                                 <label hidden class="col-form-label" for="date">Date</label>
                                 <input class="form-control form-cam-archive-date" type="date" name="date" id="date"
                                        onchange="this.form.submit()" value="<?= $date; ?>"
@@ -116,13 +120,13 @@ if ($config->camera->enabled === true) {
                     } else {
                         if ($forward_date < $cam_dir) {
                             ?>
-                            <a href="/camera?archive&date=<?= $cam_dir; ?>" title="forward"><h3><i class="fas fa-forward"
+                            <a href="/camera?archive&date=<?= $cam_dir; ?><?= $camParam; ?>" title="forward"><h3><i class="fas fa-forward"
                                                                                    aria-hidden="true"></i></h3>
                             </a>
                             <?php
                         } else {
                             ?>
-                            <a href="/camera?archive&date=<?= $forward_date; ?>" title="forward"><h3><i class="fas fa-forward"
+                            <a href="/camera?archive&date=<?= $forward_date; ?><?= $camParam; ?>" title="forward"><h3><i class="fas fa-forward"
                                                                                         aria-hidden="true"></i></h3>
                             </a>
                             <?php
@@ -131,14 +135,14 @@ if ($config->camera->enabled === true) {
                 </div>
             </div>
             <?php
-            $dirname = "img/cam/$date/";
+            $dirname = $camDir . "$date/";
 
             if ($today === $date && $config->camera->sort->today === 'descending') {
-                $images = scandir($dirname, SCANDIR_SORT_DESCENDING);
+                $images = is_dir($dirname) ? scandir($dirname, SCANDIR_SORT_DESCENDING) : 0;
             } else if ($today !== $date && $config->camera->sort->archive === 'descending') {
-                $images = scandir($dirname, SCANDIR_SORT_DESCENDING);
+                $images = is_dir($dirname) ? scandir($dirname, SCANDIR_SORT_DESCENDING) : 0;
             } else {
-                $images = scandir($dirname);
+                $images = is_dir($dirname) ? scandir($dirname) : 0;
             }
 
             $ignore = array(".", "..", "daily.gif");
@@ -206,7 +210,8 @@ if ($config->camera->enabled === true) {
             <?php
             if (file_exists('img/cam/latest.jpg')) {
                 ?>
-                <div class="col">
+                <div class="<?= $hasCam2 ? 'col-12 col-lg-6' : 'col'; ?>">
+                    <?php if ($hasCam2) { ?><h3><?= htmlspecialchars($camNames[1]); ?></h3><?php } ?>
                     <img class="img-fluid img-thumbnail" src="/img/cam/latest.jpg?<?= time(); ?>"
                          alt="Live Camera Image">
                     <h4 class="mt-3 mb-3"><?= $config->camera->text; ?></h4>
@@ -217,6 +222,20 @@ if ($config->camera->enabled === true) {
                     </button>
                 </div>
                 <?php
+                if ($hasCam2 && file_exists('img/cam2/latest.jpg')) {
+                    ?>
+                    <div class="col-12 col-lg-6">
+                        <h3><?= htmlspecialchars($camNames[2]); ?></h3>
+                        <img class="img-fluid img-thumbnail" src="/img/cam2/latest.jpg?<?= time(); ?>"
+                             alt="Live Camera Image 2">
+                        <button type="button" id="archive2" class="btn btn-outline-secondary center-block mt-3"
+                                onclick="location.href = '/camera?archive&cam=2'"><i class="far fa-images"
+                                                                                     aria-hidden="true"></i>
+                            View <?= htmlspecialchars($camNames[2]); ?> Archive
+                        </button>
+                    </div>
+                    <?php
+                }
             } else {
                 ?>
                 <div class="col-12 mt-3">

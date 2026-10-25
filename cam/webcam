@@ -84,6 +84,7 @@ function _watermark() {
 }
 
 function _moveImage() {
+  mkdir -p "${WEBDIR}"
   cp image.jpg "${WEBDIR}"/latest.jpg
   mkdir -p "${WEBDIR}"/"${ARCHIVE_DATE}"
   cp image.jpg "${WEBDIR}"/"${ARCHIVE_DATE}"/"${ARCHIVE_TIME}".jpg
@@ -126,6 +127,11 @@ source /opt/weatherparse/cam/config.env
 # "webcam cleanup" only removes images older than KEEP_DAYS (run once a day from cron).
 if [ "$1" == 'cleanup' ]; then
   _cleanup
+  if [ -n "${CAMERA2_HOST}" ]; then
+    WEBDIR="${WEBDIR2:-${WEBDIR%/}2}"
+    ARCHIVE_DIR="${ARCHIVE_DIR2:-${ARCHIVE_DIR%/}2}"
+    _cleanup
+  fi
   exit 0
 fi
 
@@ -134,49 +140,66 @@ if [ "$MODE" == '' ]; then
   exit 1
 fi
 
-if [ "$MODE" == 'combined' ] || [ "$MODE" == 'local' ]; then
-  cd "${BASEDIR}" || exit 1
+# Capture, stamp, archive and publish one camera (the variables say which).
+function _runCamera() {
+  if [ "$MODE" == 'combined' ] || [ "$MODE" == 'local' ]; then
+    cd "${BASEDIR}" || exit 1
 
-  echo "Getting camera image"
-  _getImage
+    echo "Getting camera image"
+    _getImage
 
-  echo "Processing image and adding Timestamp"
-  _timestamp
+    echo "Processing image and adding Timestamp"
+    _timestamp
 
-  if [ "$MODE" == 'local' ]; then
+    if [ "$MODE" == 'local' ]; then
 
-    echo "Sending image to remote server for processing"
-    _remoteServer
+      echo "Sending image to remote server for processing"
+      _remoteServer
 
-    echo "START: Running remote commands"
-    _runRemote
+      echo "START: Running remote commands"
+      _runRemote
+    fi
+
+    if [ "$LOCAL_ARCHIVE" == 1 ]; then
+      echo "Archiving"
+      _localArchive
+    fi
+
   fi
 
-  if [ "$LOCAL_ARCHIVE" == 1 ]; then
-    echo "Archiving"
-    _localArchive
+  if [ "$MODE" == 'combined' ] || [ "$MODE" == 'remote' ]; then
+    cd "${BASEDIR}" || exit 1
+
+    echo "Applying Weather Info Watermark"
+    _watermark
+
+    echo "Moving image to webserver and updating animation"
+    _moveImage
+
   fi
 
-fi
+  if [ "$MODE" == 'combined' ] || [ "$MODE" == 'local' ]; then
+    echo "Cleaning LOCAL TMP"
+    rm image.jpg*
+    rm "${CAMERA_FILENAME}"*
+    echo "Done: LOCAL/COMBINED"
+  elif [ "$MODE" == 'remote' ]; then
+    echo "Cleaning REMOTE TMP"
+    rm image.jpg*
+    echo "END: Running remote commands"
+  fi
+}
 
-if [ "$MODE" == 'combined' ] || [ "$MODE" == 'remote' ]; then
-  cd "${BASEDIR}" || exit 1
+# Camera 1
+_runCamera
 
-  echo "Applying Weather Info Watermark"
-  _watermark
-
-  echo "Moving image to webserver and updating animation"
-  _moveImage
-
-fi
-
-if [ "$MODE" == 'combined' ] || [ "$MODE" == 'local' ]; then
-  echo "Cleaning LOCAL TMP"
-  rm image.jpg*
-  rm "${CAMERA_FILENAME}"*
-  echo "Done: LOCAL/COMBINED"
-elif [ "$MODE" == 'remote' ]; then
-  echo "Cleaning REMOTE TMP"
-  rm image.jpg*
-  echo "END: Running remote commands"
+# Optional second camera (combined mode only): CAMERA2_HOST in config.env. Its images go to img/cam2 and archive2.
+if [ -n "${CAMERA2_HOST}" ] && [ "$MODE" == 'combined' ]; then
+  echo "Camera 2"
+  CAMERA_HOST="${CAMERA2_HOST}"
+  WATERMARK="${CAMERA2_WATERMARK:-$WATERMARK}"
+  CAMERA_FILENAME="cam2-${CAMERA_FILENAME}"
+  WEBDIR="${WEBDIR2:-${WEBDIR%/}2}"
+  ARCHIVE_DIR="${ARCHIVE_DIR2:-${ARCHIVE_DIR%/}2}"
+  _runCamera
 fi

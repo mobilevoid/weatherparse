@@ -114,6 +114,8 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         // Webcam
         $config->camera->enabled = (bool)$_POST['camera']['enabled'];
         $config->camera->text = (isset($_POST['camera']['text'])) ? $_POST['camera']['text'] : 'Image updated every X minutes.';
+        $config->camera->name = trim((string)($_POST['camera']['name'] ?? '')) ?: 'Camera 1';
+        $config->camera->name2 = trim((string)($_POST['camera']['name2'] ?? '')) ?: 'Camera 2';
         $config->camera->sort->today = (isset($_POST['camera']['sort']['today'])) ? $_POST['camera']['sort']['today'] : 'ascending';
         $config->camera->sort->archive = (isset($_POST['camera']['sort']['archive'])) ? $_POST['camera']['sort']['archive'] : 'ascending';
 

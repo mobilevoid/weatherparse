@@ -83,6 +83,8 @@ return (object)array(
     'camera' => (object)array(
         'enabled' => false, // Web Camera Enabled, True/False
         'text' => 'Image updated every X minutes.', // Text displayed camera under image
+        'name' => 'Camera 1', // Camera 1 name (shown when there are two cameras)
+        'name2' => 'Camera 2', // Camera 2 name (CAMERA2_HOST in cam/config.env)
         'sort' => (object)array(
             'today' => 'ascending', // Today's Sort Order
             'archive' => 'ascending', // Archive Sort Order

@@ -47,6 +47,8 @@ switch ($config->version->app) {
         @$config->station->spike_filter = true;
         @$config->station->spike_max_change = 10;
         @$config->station->maintenance = false;
+        @$config->camera->name = 'Camera 1';
+        @$config->camera->name2 = 'Camera 2';
         $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'WeatherParse 4.0.0: PHP 8.2 to 8.4, no telemetry (update check reads GitHub releases), MyAcuRite forwarding without a relay. See CHANGELOG.txt</li>';
 
 }

@@ -94,6 +94,28 @@
                             </div>
                             <div class="row">
                                 <div class="col-3">
+                                    <label class="col-form-label" for="camera-name">Camera 1 Name</label>
+                                </div>
+                                <div class="col">
+                                    <input type="text" class="form-control" name="camera[name]" id="camera-name"
+                                        <?= ($config->camera->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                           maxlength="40" value="<?= htmlspecialchars($config->camera->name ?? 'Camera 1'); ?>">
+                                    <small class="form-text text-muted">Shown when a second camera is configured (CAMERA2_HOST in cam/config.env)</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
+                                    <label class="col-form-label" for="camera-name2">Camera 2 Name</label>
+                                </div>
+                                <div class="col">
+                                    <input type="text" class="form-control" name="camera[name2]" id="camera-name2"
+                                        <?= ($config->camera->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                           maxlength="40" value="<?= htmlspecialchars($config->camera->name2 ?? 'Camera 2'); ?>">
+                                    <small class="form-text text-muted">Shown when a second camera is configured (CAMERA2_HOST in cam/config.env)</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-3">
                                     <label class="col-form-label" for="camera_sort_today">Today Sort Order</label>
                                 </div>
                                 <div class="col">
