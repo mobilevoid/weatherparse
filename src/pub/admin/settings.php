@@ -85,6 +85,9 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         $config->station->towers_additional = isset($_POST['station']['towers_additional']) && $_POST['station']['towers_additional'];
         $config->station->lightning_source = (int)$_POST['station']['lightning_source'];
         $config->station->filter_access = isset($_POST['station']['filter_access']) && $_POST['station']['filter_access'];
+        $config->station->spike_filter = !isset($_POST['station']['spike_filter']) || (bool)$_POST['station']['spike_filter'];
+        $config->station->spike_max_change = isset($_POST['station']['spike_max_change']) ? max(1.0, min(50.0, (float)$_POST['station']['spike_max_change'])) : 10.0;
+        $config->station->maintenance = isset($_POST['station']['maintenance']) && (bool)$_POST['station']['maintenance'];
         $config->station->reverse_wind = (bool)$_POST['station']['reverse_wind'];
         $config->station->realtime = (bool)$_POST['station']['realtime'];
         $config->station->realtimeUTC = (bool)$_POST['station']['realtimeUTC'];

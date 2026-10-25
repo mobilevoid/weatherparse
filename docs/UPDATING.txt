@@ -1,91 +1,82 @@
-ACUPARSE UPDATE GUIDE
-=====================
+WEATHERPARSE UPDATE GUIDE
+=========================
 
-Detailed upgrade instructions for significant releases will be published in the docs/updates (/#version-specific-guides) folder,
-when required and are listed below.
-
-Updating from below version 3
-=============================
-
-If you are running a version less than 3, follow the Version 3 Update Guide.
-
-- Update to Version 3 (updates/v3)
-
-Updating from below version 2.3
--------------------------------
-
-- Update to Version 2.3 (updates/v2_3)
-
-Local Install
+Back Up First
 =============
 
-- Pull the changes from Version Management.
+Before any update, back up the database, your config file and your camera settings:
 
-    cd /opt/acuparse
-    sudo git pull
+    mysqldump --single-transaction weatherparse | gzip > ~/weatherparse-db-$(date +%F).sql.gz
+    cp /opt/weatherparse/src/usr/config.php ~/config.php.$(date +%F)
+    cp /opt/weatherparse/cam/config.env ~/cam-config.env.$(date +%F)
 
-- Navigate to your Acuparse website to complete the update.
+Use your own database name if it is not weatherparse (an install upgraded from Acuparse usually keeps acuparse).
+
+Updating WeatherParse
+=====================
+
+- Pull the changes:
+
+      cd /opt/weatherparse
+      sudo git pull
+
+- Open your WeatherParse website and sign in as an admin. If the version changed, the site sends you to the in-app
+  updater (/admin/install/?update). Click Begin Update and check your settings afterwards.
+
+Upgrading from Acuparse 3.9.4
+=============================
+
+WeatherParse 4.0.0 is the continuation of Acuparse 3.9.4. Your database and settings carry over.
+
+- Back up as above (the config file is /opt/acuparse/src/usr/config.php and the camera settings
+  /opt/acuparse/cam/config.env).
+
+- Get WeatherParse and copy your settings into it:
+
+      sudo git clone https://github.com/mobilevoid/weatherparse.git /opt/weatherparse
+      sudo cp -a /opt/acuparse/src/usr/config.php /opt/weatherparse/src/usr/
+      sudo cp -a /opt/acuparse/cam/config.env /opt/weatherparse/cam/
+      sudo chown -R www-data:www-data /opt/weatherparse/src/usr /opt/weatherparse/src/pub/img
+
+  In cam/config.env change any /opt/acuparse paths to /opt/weatherparse. Keep the existing database name in
+  config.php; no database rename is needed.
+
+- Point Apache at /opt/weatherparse (use config/weatherparse.conf and config/weatherparse-ssl.conf, or change the
+  DocumentRoot and Directory paths in your existing site files) and restart Apache.
+
+- Change the cron entries from /opt/acuparse to /opt/weatherparse (see the Install Guide,
+  https://github.com/mobilevoid/weatherparse/blob/main/docs/INSTALL.txt, section "Cron").
+
+- Sign in as an admin and run the update to 4.0.0. It also moves MyAcuRite forwarding off the old acuparse.com relay
+  to atlasapi.myacurite.com directly.
+
+- Once everything works, keep /opt/acuparse as a fallback for a while before removing it.
+
+Older Acuparse Versions
+=======================
+
+Installs older than Acuparse 3.x should follow the historical Acuparse upgrade notes first:
+
+- docs/updates/v3.txt (Acuparse 3.0)
+- docs/updates/v2_3.txt (Acuparse 2.3)
+
+Operating System Upgrades
+=========================
+
+When moving to a new Debian release, watch for:
+
+- PHP: Debian 12 ships PHP 8.2 and Debian 13 PHP 8.4. Install the matching libapache2-mod-php, php-mysql, php-curl,
+  php-gd and php-cli packages and make sure the old PHP Apache module is disabled and the new one enabled
+  (a2dismod / a2enmod).
+- OpenSSL 3: keep the Access TLS settings described in the Install Guide, section "Access TLS (OpenSSL 3)".
+- Network interface names: Debian 12 and later name the Raspberry Pi onboard Ethernet end0 instead of eth0. Update
+  dnsmasq, firewall rules and network settings that name the port.
+- Timezone: Debian 13 moved old names such as US/Central to tzdata-legacy; set a current name such as
+  America/Chicago with timedatectl set-timezone.
+- After a MariaDB upgrade or an unclean shutdown, check the tables: mariadb-check --auto-repair --check <database>
 
 Docker Install
 ==============
 
-The Acuparse CI system rebuilds the latest images weekly to ensure the images include upstream updates.
-
-- If you installed using the installer and have the helper scripts available.
-
-    sudo acuparse update
-
-- If the helpers are not installed. Pull the image from Docker with compose.
-
-    docker-compose pull
-    docker-compose -f /opt/acuparse/docker-compose.yml up -d
-
-- To update just the Acuparse image
-
-    docker pull acuparse/acuparse
-    docker-compose -f /opt/acuparse/docker-compose.yml up -d
-
-Update Docker Compose
----------------------
-
-- If you installed using the installer and have the helper scripts available.
-
-    sudo acuparse update
-    sudo acuparse update_compose
-
-- If the helpers are not installed. Update Compose manually
-
-    curl -L "https://github.com/docker/compose/releases/download/{COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    docker-compose -f /opt/acuparse/docker-compose.yml up -d
-
-Update Debian Buster to Bullseye
-================================
-
-Bare Installer
---------------
-
-- A script is available to update your OS from Debian Buster to Bullseye.
-
-        curl -O https://gitlab.com/acuparse/installer/-/raw/master/resources/bullseye && sudo bash bullseye | tee ~/bullseye.log
-
-    - The installer will also attempt to update your Apache config to include support for TLS1.1 Check your
-      /etc/apache2/sites-available/acuparse-ssl.conf and ensure you have the following after SSLEngine on
-        - Run systemctl restart apache2 if you need to make changes.
-
-            SSLProtocol all +TLSv1.1 -SSLv3
-            SSLCipherSuite ALL:@SECLEVEL=1
-
-Docker Installer
-----------------
-
-- Docker installer users can update the base OS by running
-
-        sed -i 's/buster/bullseye/g' /etc/apt/sources.list
-        sed -i 's#deb http://security.debian.org/ bullseye/updates#deb https://security.debian.org/debian-security bullseye-security#g' /etc/apt/sources.list
-        sed -i 's#deb-src http://security.debian.org/ bullseye/updates#deb-src https://security.debian.org/debian-security bullseye-security#g' /etc/apt/sources.list
-        apt update
-        apt dist-upgrade
-
-- Rasbian users should also update Docker Compose
-    - pip3 install docker-compose
+WeatherParse does not publish Docker images yet. Build the image locally from the Dockerfile; see the Docker Guide
+(https://github.com/mobilevoid/weatherparse/blob/main/docs/DOCKER.txt).

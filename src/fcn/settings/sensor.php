@@ -292,6 +292,70 @@
 
             <hr class="hr-dotted">
 
+            <!-- Spike filter and maintenance (WeatherParse) -->
+            <section class="row alert alert-secondary">
+                <div class="col mt-2 mb-2">
+                    <div class="row">
+                        <div class="col">
+                            <h3>Temperature Spike Filter</h3>
+                            <p>Drops impossible temperatures from the Iris/Atlas (below -60&deg;F, above 140&deg;F, or a jump
+                                larger than the limit below per 5 minutes). The other readings in the same report are kept.
+                                A failing temperature element often reports 158&deg;F.</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="station[spike_filter]"
+                                       id="station-spike-filter-1" value="1"
+                                    <?= (($config->station->spike_filter ?? true) === true) ? 'checked="checked"' : false; ?>>
+                                <label class="form-check-label btn btn-success" for="station-spike-filter-1"><strong>Enabled</strong></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="station[spike_filter]"
+                                       id="station-spike-filter-0" value="0"
+                                    <?= (($config->station->spike_filter ?? true) === false) ? 'checked="checked"' : false; ?>>
+                                <label class="form-check-label btn btn-danger" for="station-spike-filter-0">Disabled</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-auto col-form-label" for="station-spike-max-change">Largest change allowed per 5 minutes (&deg;F)</label>
+                        <div class="col-3">
+                            <input type="number" class="form-control" name="station[spike_max_change]"
+                                   id="station-spike-max-change" min="1" max="50" step="0.5"
+                                   value="<?= htmlspecialchars((string)($config->station->spike_max_change ?? 10)); ?>">
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col">
+                            <h3>Maintenance Mode</h3>
+                            <p>Turn on while you service the outdoor sensor. Readings are still recorded here, but nothing is
+                                sent to MyAcuRite or any upload service until you turn it off.</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="station[maintenance]"
+                                       id="station-maintenance-1" value="1"
+                                    <?= (($config->station->maintenance ?? false) === true) ? 'checked="checked"' : false; ?>>
+                                <label class="form-check-label btn btn-warning" for="station-maintenance-1"><strong>On (uploads paused)</strong></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="station[maintenance]"
+                                       id="station-maintenance-0" value="0"
+                                    <?= (($config->station->maintenance ?? false) === false) ? 'checked="checked"' : false; ?>>
+                                <label class="form-check-label btn btn-success" for="station-maintenance-0">Off</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="hr-dotted">
+
             <!-- Barometer -->
             <section class="row alert alert-secondary">
                 <div class="col mt-2 mb-2">

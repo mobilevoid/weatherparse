@@ -43,6 +43,10 @@ switch ($config->version->app) {
         if (isset($config->upload->myacurite->hub_url) && str_contains($config->upload->myacurite->hub_url, 'acuparse.com')) {
             $config->upload->myacurite->hub_url = 'http://hubapi.myacurite.com';
         }
+        // New settings
+        @$config->station->spike_filter = true;
+        @$config->station->spike_max_change = 10;
+        @$config->station->maintenance = false;
         $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'WeatherParse 4.0.0: PHP 8.2 to 8.4, no telemetry (update check reads GitHub releases), MyAcuRite forwarding without a relay. See CHANGELOG.txt</li>';
 
 }

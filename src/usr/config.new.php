@@ -50,6 +50,9 @@ return (object)array(
         'baro_offset' => 0, // inHg. Adjust this as required to match the offset for your elevation
         'lightning_source' => 0, // Lightning (0-none/1-atlas/2-tower/3-both)
         'filter_access' => true, // Filter out of range Access readings
+        'spike_filter' => true, // Drop impossible Iris/Atlas temperatures (see fcn/weatherstation/readingFilter.php)
+        'spike_max_change' => 10, // Largest temperature change (F) allowed per 5 minutes
+        'maintenance' => false, // Sensor being serviced: record locally, upload nothing
         'reverse_wind' => false, // Reverse Wind direction readings for Southern Hemisphere
         'realtime' => false, // Enable Realtime RTL Data
         'realtimeUTC' => true, // UTC or Local timezones for Realtime RTL Data

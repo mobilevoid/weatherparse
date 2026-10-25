@@ -33,6 +33,7 @@
  */
 
 require(APP_BASE_PATH . '/fcn/weather/lightningUpdate.php');
+require(APP_BASE_PATH . '/fcn/weatherstation/readingFilter.php');
 
 // Set the device ID
 $device = 'A';
@@ -133,7 +134,7 @@ if ($_GET['mt'] === '5N1' || $_GET['mt'] === 'Iris') {
             filter_input(INPUT_GET, 'hubbattery', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Check for erroneous readings
-        if ($config->station->filter_access === 1) {
+        if ($config->station->filter_access === true || $config->station->filter_access === 1) {
             if (($tempF == -40 || $tempF == 0) && ($humidity === 0 || $humidity === 1) && $windSpeedMPH === 0 && $windGustMPH === 0 && $windSpeedAvgMPH === 0) {
                 // Log it
                 if ($config->debug->logging === true) {
@@ -148,8 +149,11 @@ if ($_GET['mt'] === '5N1' || $_GET['mt'] === 'Iris') {
         }
 
         // Insert Iris Readings into DB
+        // Temperature only when the spike filter accepts it (other sensors are stored either way)
+        $temperatureSql = temperatureReadingAccepted($conn, $config, (float)$tempF, $timestamp, 'IRIS')
+            ? "INSERT INTO `temperature` (`tempF`, `heatindex`, `feelslike`, `windchill`, `dewptf`, `timestamp`, `device`, `source`) VALUES ('$tempF', '$heatIndex', '$feelsLike', '$windChill', '$dewptF', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `tempF` = '$tempF', `heatindex` = '$heatIndex', `feelslike` = '$feelsLike', `windchill` = '$windChill', `dewptf` = '$dewptF', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';" : '';
         $sql = "INSERT INTO `windspeed` (`speedMPH`, `gustMPH`, `averageMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH', '$windGustMPH', '$windSpeedAvgMPH', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `speedMPH` = '$windSpeedMPH', `gustMPH` = '$windGustMPH', `averageMPH` = '$windSpeedAvgMPH', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
-            INSERT INTO `temperature` (`tempF`, `heatindex`, `feelslike`, `windchill`, `dewptf`, `timestamp`, `device`, `source`) VALUES ('$tempF', '$heatIndex', '$feelsLike', '$windChill', '$dewptF', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `tempF` = '$tempF', `heatindex` = '$heatIndex', `feelslike` = '$feelsLike', `windchill` = '$windChill', `dewptf` = '$dewptF', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
+            {$temperatureSql}
             INSERT INTO `winddirection` (`degrees`, `gust`, `timestamp`, `device`, `source`) VALUES ('$windDirection', '$windGustDirection', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `degrees` = '$windDirection', `gust` = '$windGustDirection', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
             INSERT INTO `humidity` (`relH`, `timestamp`, `device`, `source`) VALUES ('$humidity', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `relH` = '$humidity', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
             UPDATE `rainfall` SET `rainin`='$rainIN', `last_update`='$timestamp', `device`='$device', `source`='$source';
@@ -271,7 +275,7 @@ elseif ($_GET['mt'] === 'Atlas') {
             filter_input(INPUT_GET, 'hubbattery', FILTER_CALLBACK, ['options' => 'legacySanitizeString']));
 
         // Check for erroneous readings
-        if ($config->station->filter_access === 1) {
+        if ($config->station->filter_access === true || $config->station->filter_access === 1) {
             if (($tempF == -40 || $tempF == 0) && ($humidity === 0 || $humidity === 1) && $windSpeedMPH === 0 && $windGustMPH === 0 && $windSpeedAvgMPH === 0 && $uvindex === 0 && $lightintensity === 0 && $measured_light_seconds === 0) {
                 // Log it
                 if ($config->debug->logging === true) {
@@ -286,8 +290,11 @@ elseif ($_GET['mt'] === 'Atlas') {
         }
 
         // Insert Atlas readings into DB
+        // Temperature only when the spike filter accepts it (other sensors are stored either way)
+        $temperatureSql = temperatureReadingAccepted($conn, $config, (float)$tempF, $timestamp, 'ATLAS')
+            ? "INSERT INTO `temperature` (`tempF`, `heatindex`, `feelslike`, `windchill`, `dewptf`, `timestamp`, `device`, `source`) VALUES ('$tempF', '$heatIndex', '$feelsLike', '$windChill', '$dewptF', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `tempF`='$tempF', `heatindex`='$heatIndex', `feelslike`='$feelsLike', `windchill`='$windChill', `dewptf`='$dewptF', `timestamp`='$timestamp', `device`='$device', `source`='$source';" : '';
         $sql = "INSERT INTO `windspeed` (`speedMPH`, `gustMPH`, `averageMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH', '$windGustMPH', '$windSpeedAvgMPH', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `speedMPH`='$windSpeedMPH', `gustMPH`='$windGustMPH', `averageMPH`='$windSpeedAvgMPH', `timestamp`='$timestamp', `device`='$device', `source`='$source';
-            INSERT INTO `temperature` (`tempF`, `heatindex`, `feelslike`, `windchill`, `dewptf`, `timestamp`, `device`, `source`) VALUES ('$tempF', '$heatIndex', '$feelsLike', '$windChill', '$dewptF', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `tempF`='$tempF', `heatindex`='$heatIndex', `feelslike`='$feelsLike', `windchill`='$windChill', `dewptf`='$dewptF', `timestamp`='$timestamp', `device`='$device', `source`='$source';
+            {$temperatureSql}
             INSERT INTO `winddirection` (`degrees`, `gust`, `timestamp`, `device`, `source`) VALUES ('$windDirection', '$windGustDirection', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `degrees`='$windDirection', `gust`='$windGustDirection', `timestamp`='$timestamp', `device`='$device', `source`='$source';
             INSERT INTO `humidity` (`relH`, `timestamp`, `device`, `source`) VALUES ('$humidity', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `relH`='$humidity', `timestamp`='$timestamp', `device`='$device', `source`='$source';
             UPDATE `rainfall` SET `rainin`='$rainIN', `last_update`='$timestamp', `device`='$device', `source`='$source';
@@ -486,7 +493,7 @@ else {
 
 MYACURITE_UPLOAD:
 // Forward the raw data to MyAcuRite
-if ($config->upload->myacurite->access_enabled === true) {
+if ($config->upload->myacurite->access_enabled === true && ($config->station->maintenance ?? false) !== true) {
     require_once(APP_BASE_PATH . '/fcn/weatherstation/myacurite.php');
     $myacurite = myacuriteForward($config->upload->myacurite->access_url,
         '/weatherstation/updateweatherstation?&' . $myacuriteQuery, $postData, (string)($_SERVER['HTTP_USER_AGENT'] ?? ''));

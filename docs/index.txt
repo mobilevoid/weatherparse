@@ -1,18 +1,14 @@
-ACUPARSE DOCUMENTATION (HTTPS://DOCS.ACUPARSE.COM)
-==================================================
+WEATHERPARSE DOCUMENTATION
+==========================
 
-Project Services Status
-=======================
+WeatherParse (https://github.com/mobilevoid/weatherparse) captures, stores, and displays weather data from an AcuRite
+Iris (5-in-1) or Atlas (7-in-1) weather station and tower sensors, via your Access/smartHUB. It uploads weather data
+to Weather Underground (https://www.wunderground.com), CWOP (http://www.wxqa.com), Weathercloud
+(https://weathercloud.net), PWS Weather (https://www.pwsweather.com), Windy (https://www.windy.com), Windguru
+(https://www.windguru.cz), OpenWeather (https://openweathermap.org/), and MQTT (https://mqtt.org/) brokers. It also
+processes and stores images from a local network camera for display and linking to external websites.
 
-|                                                                           Core                                                                            | Installer                                                                                                                                                     | RTL Relay                                                                                                                                                   | Website                                                                                                                                                                                                                                                | DNS Sync                                                                                                                                        | Release Service                                                                                                                                                                                                                                           |
-|:---------------------------------------------------------------------------------------------------------------------------------------------------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|  |  |  |  Website Status (https://img.shields.io/uptimerobot/status/m787016706-5967cac56e544c773094fc78) |  |  Release Management Service Status (https://img.shields.io/uptimerobot/status/m787016696-3d8a19d46b2014c8daa8d9d6) |
-
-Welcome to the Acuparse (https://www.acuparse.com) Documentation. Use the resources below to assist in your
-installation and configuration of Acuparse.
-
-Built for weather geeks and designed to be clean, simple, and mobile friendly. It uses a minimal UI with a focus on
-data, not flashy graphics. Designed to compliment MyAcuRite and other 3rd party's sites and tools.
+WeatherParse is based on Acuparse by Maxwell Power (https://github.com/acuparse/acuparse), AGPL-3.0.
 
 Attention:
     This program is open source 3rd party software. It is neither written nor supported by AcuRite.
@@ -20,116 +16,57 @@ Attention:
 How it Works
 ============
 
-Acuparse (https://www.acuparse.com) is a PHP/MySQL program that captures, stores, and displays weather data from an
-AcuRite Iris (5-in-1) or Atlas (7-in-1) weather station and tower sensors, via your Access/smartHUB. It uploads weather
-data to
-Weather Underground (https://https://www.wunderground.com), CWOP (http://www.wxqa.com)
-, Weathercloud (https://weathercloud.net),
-PWS Weather (https://www.pwsweather.com), Windy (https://www.windy.com), Windguru (https://www.windguru.cz),
-OpenWeather (https://openweathermap.org/), and MQTT (https://mqtt.org/) Brokers. It also processes and stores images from a local network camera for
-display and linking to external websites.
-
-Built for weather geeks and designed to be clean, simple, and mobile friendly. It uses a minimal UI with a focus on
-data, not flashy graphics. Designed to compliment MyAcuRite and other 3rd party's sites and tools.
-
-Acuparse requires a working AcuRite Access/smartHUB. You redirect weather data from your Access/smartHUB to your
-Acuparse server. It is captured, stored, and then passed along to MyAcuRite untouched. The response received from
+WeatherParse requires a working AcuRite Access/smartHUB. You redirect weather data from your Access/smartHUB to your
+WeatherParse server. It is captured, stored, and then passed along to MyAcuRite untouched. The response received from
 MyAcuRite is sent back to your Access/smartHUB. If sending data to MyAcuRite is disabled or when using a smartHUB,
-Acuparse creates the response.
+WeatherParse creates the response.
 
-Main Installation Guides
-========================
+Documents
+=========
 
-Info:
-    Installation supported on Debian/Rasbian Bullseye (11)/Buster (10) or Ubuntu Jammy (22.04)/Focal (20.04).
+Installing
+----------
 
-- Main Install Guide (INSTALL)
-- Docker Install Guide (DOCKER)
-- RaspberryPi Direct Connect (other/RPI_DIRECT_CONNECT)
+- docs/INSTALL.txt                 Install Guide (Debian 12/13, Raspberry Pi OS Lite)
+- docs/other/RPI_DIRECT_CONNECT.txt  Raspberry Pi Direct Connect
+- docs/DOCKER.txt                  Docker Guide (build locally)
 
-Quick Install
--------------
+Using
+-----
 
-- Install the base operating system and update.
-- Download and run the installer.
-
-        curl -o https://gitlab.com/acuparse/installer/-/raw/master/install && sudo bash install | tee ~/acuparse.log`
-
-Docker Compose
---------------
-
-    curl -o https://gitlab.com/acuparse/installer/-/raw/master/install_docker && sudo bash install_docker | tee ~/acuparse.log
-
-- See the DOCKER Install Guide (DOCKER) for more details.
-
-API
-===
-
-- API Guide (API)
+- docs/API.txt                     API Guide
+- docs/REALTIME.txt                RTL Dongle / Realtime Guide
+- docs/TROUBLESHOOTING.txt         Troubleshooting Guide
 
 Updating
-========
+--------
 
-- Update Guide (UPDATING)
-
-Version Specific Guides
------------------------
-
-- Version 3 (updates/v3)
-- Version 2.3 (updates/v2_3)
+- docs/UPDATING.txt                Update Guide, including upgrading from Acuparse 3.9.4
+- docs/updates/v3.txt              Historical Acuparse 3.0 upgrade notes
+- docs/updates/v2_3.txt            Historical Acuparse 2.3 upgrade notes
 
 Optional Configuration
-======================
+----------------------
 
-- DNS Redirect Configuration (other/DNS)
-- NGINX Configuration (other/NGINX)
-- Backups (other/BACKUPS)
-- Telemetry (other/TELEMETRY)
-- RTL Dongle / Realtime Guide (REALTIME.txt)
+- docs/other/DNS.txt               DNS Redirect Configuration
+- docs/other/NGINX.txt             NGINX Configuration
+- docs/other/BACKUPS.txt           Backups
+- docs/other/TELEMETRY.txt         Telemetry (none) and the update check
 
-External Updater Configuration
-==============================
+External Uploaders
+------------------
 
-- Weather Underground (external/WU)
-- Weathercloud (external/WC)
-- PWS Weather (external/PWS)
-- CWOP (external/CWOP)
-- WINDY (external/WINDY)
-- Windguru (external/WINDGURU)
-- Open Weather Map (external/OPENWEATHER)
-- MQTT (external/MQTT)
+- docs/external/WU.txt             Weather Underground
+- docs/external/WC.txt             Weathercloud
+- docs/external/PWS.txt            PWS Weather
+- docs/external/CWOP.txt           CWOP
+- docs/external/WINDY.txt          Windy
+- docs/external/WINDGURU.txt       Windguru
+- docs/external/OPENWEATHER.txt    OpenWeather
+- docs/external/MQTT.txt           MQTT
+- docs/external/generic/WEATHERPOLY.txt  WeatherPoly (generic uploader)
 
-Generic
--------
+Support
+=======
 
-- WeatherPoly (external/generic/WEATHERPOLY)
-
-Troubleshooting
-===============
-
-- Troubleshooting Guide (TROUBLESHOOTING)
-
-Community Support
-=================
-
-- Slack (https://communityinviter.com/apps/acuparse/docs)
-- Users Mailing List (https://groups.google.com/a/lists.acuparse.com/forum/#!forum/users)
-
-- Support for the core application/bugs is handled via GitLab Issues (https://gitlab.com/acuparse/acuparse/issues).
-    - You may also open a new issue by mailing support@acuparse.com (mailto:support@acuparse.com). If you require
-      advanced or commercial support, send mail to hello@acuparse.com (mailto:hello@acuparse.com).
-
-Git Repositories
-================
-
-Primary
--------
-
-- GitLab (https://gitlab.com/acuparse/acuparse)
-
-Public Mirrors
---------------
-
-- GitHub (https://github.com/acuparse/acuparse)
-- BitBucket (https://bitbucket.org/acuparse/acuparse)
-- Azure (https://dev.azure.com/acuparse/acuparse)
+Bugs and feature requests: GitHub Issues (https://github.com/mobilevoid/weatherparse/issues).

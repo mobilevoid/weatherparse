@@ -1,164 +1,140 @@
-ACUPARSE INSTALLATION GUIDE
-===========================
-
-This guide is designed to walk through the steps required to install Acuparse on a freshly installed Debian based
-server.
-
-You can install Acuparse locally on bare-metal or a VM, or you can use a Docker Container based installation.
-
-Note:
-    Installation only supported on Debian/Raspbian Bullseye (11)/Buster (10) or Ubuntu Jammy (22.04)/Focal (20.04).
-
-RaspberryPi
-===========
-
-Warning:
-    DO NOT use the automated install if you are directly connecting an Access/SmartHub to your Pi. If you **ARE
-    NOT** directly connecting to a Pi, follow the Automated, Docker, or Manual install process.
-
-- If you're connecting an Access/SmartHub directly to your PI, see the community provided
-  RaspberryPi Direct Connect (https://docs.acuparse.com/other/RPI_DIRECT_CONNECT) installation guide.
-    - This guide is not yet officially supported by the Acuparse project but was moved to the main docs for ease of use.
-      It may be out of date and has not yet been re-validated. If you have success/problems with this guide, please
-      report them on the users mailing list or, in Slack.
-    - See also: Troubleshooting (https://docs.acuparse.com/TROUBLESHOOTING/#raspberrypis)
-
-Automated Acuparse Installation
+WEATHERPARSE INSTALLATION GUIDE
 ===============================
 
-Bare-metal or Virtual
----------------------
+This guide walks through a manual install of WeatherParse on a freshly installed Debian based server, including a
+Raspberry Pi running Raspberry Pi OS Lite.
 
-- Install your base operating system and update.
-- Then run the installer.
+WeatherParse is based on Acuparse by Maxwell Power (AGPL-3.0). The old Acuparse automated installer and its
+"acuparse" command line tool are not part of WeatherParse; follow the manual steps below.
 
-    curl -O https://gitlab.com/acuparse/installer/-/raw/master/install && sudo bash install | tee ~/acuparse.log
+Note:
+    Supported: Debian 12 (bookworm) with PHP 8.2, and Debian 13 (trixie) with PHP 8.4, including Raspberry Pi OS
+    Lite based on them.
 
-Docker Container Based
-----------------------
+Raspberry Pi
+============
 
-    curl -O https://gitlab.com/acuparse/installer/-/raw/master/install_docker && sudo bash install_docker | tee ~/acuparse.log
+If you are connecting an Access directly to the Pi's Ethernet port, also read the Raspberry Pi Direct Connect guide
+(https://github.com/mobilevoid/weatherparse/blob/main/docs/other/RPI_DIRECT_CONNECT.txt) and the section
+"Direct Connection (Raspberry Pi)" below.
 
-- See the Docker Install Guide (https://docs.acuparse.com/DOCKER) for more details
+Raspberry Pi tips
+-----------------
 
-Manual Acuparse Installation
-============================
+- Disable Wi-Fi power saving. On a Pi 4 the Wi-Fi can silently stop passing traffic with power saving on.
+  With NetworkManager (the default on Raspberry Pi OS based on Debian 12 and 13) create
+  /etc/NetworkManager/conf.d/wifi-powersave-off.conf containing:
 
-- Switch to the root account to install:
+      [connection]
+      wifi.powersave = 2
 
-        sudo su
+  Then restart NetworkManager or reboot. Check with: iw dev wlan0 get power_save
 
-- Change to the root directory:
+- Raspberry Pi OS based on Debian 13 keeps the systemd journal in RAM only, so it is lost on power loss or reboot.
+  Use /var/log/syslog (rsyslog) for history.
 
-        cd ~
+- Optional: a small watchdog (a systemd timer that pings your router every minute, reconnects Wi-Fi after a few failed
+  minutes and reboots after a longer outage, at most once an hour) keeps a remote Pi reachable without a trip to it.
 
-- Check and update your system timezone:
+Manual Installation
+===================
 
-        dpkg-reconfigure tzdata && systemctl restart rsyslog.service
+- Switch to the root account:
 
-- Install the required packages:
+      sudo -i
 
-    - Debian/Raspbian Bullseye(11):
+- Set your timezone. On Debian 13 the old names such as US/Central moved to the tzdata-legacy package; use the
+  current names such as America/Chicago:
 
-          apt install git ntp imagemagick exim4 apache2 default-mysql-server php7.4 libapache2-mod-php7.4 php7.4-mysql php7.4-gd php7.4-curl php7.4-json php7.4-cli php7.4-common -y
+      timedatectl set-timezone America/Chicago
 
-    - Debian/Raspbian Buster(10):
+- Install the required packages (PHP 8.2 on Debian 12 or PHP 8.4 on Debian 13; the php meta packages pick the right
+  one):
 
-          apt install git ntp imagemagick exim4 apache2 default-mysql-server php7.3 libapache2-mod-php7.3 php7.3-mysql php7.3-gd php7.3-curl php7.3-json php7.3-cli php7.3-common -y
+      apt update
+      apt install -y apache2 mariadb-server php libapache2-mod-php php-mysql php-curl php-gd php-cli \
+          ffmpeg imagemagick git
 
-    - Ubuntu 22.04 LTS:
+  For a direct connect Raspberry Pi also install:
 
-          apt install git ntp imagemagick exim4 apache2 default-mysql-server php8.1 libapache2-mod-php8.1 php8.1-mysql php8.1-gd php8.1-curl php8.1-cli php8.1-common -y
+      apt install -y dnsmasq iptables-persistent
 
-    - Ubuntu 20.04 LTS:
+  Optional, for troubleshooting the Access traffic:
 
-          apt install git ntp imagemagick exim4 apache2 default-mysql-server php7.4 libapache2-mod-php7.4 php7.4-mysql php7.4-gd php7.4-curl php7.4-json php7.4-cli php7.4-common -y
+      apt install -y tcpdump
 
-- Secure your MySQL install:
+- Secure MariaDB:
 
-      mysql_secure_installation
+      mariadb-secure-installation
 
-Email Server Config
--------------------
-
-Run dpkg-reconfigure exim4-config and choose the correct values for your system. Most users will need to select
-internet site; mail is sent and received directly using SMTP and accept the rest of the defaults.
-
-Install Acuparse
+Get WeatherParse
 ----------------
 
-- Get the Acuparse source:
-
-      git init /opt/acuparse && cd /opt/acuparse && git remote add -t master -f origin https://gitlab.com/acuparse/acuparse.git && git checkout master
-
-- Set the owner on the web root:
-
-      chown -R www-data:www-data src
-
-- Disable the default Apache config:
-
-      a2dissite 000-default.conf
-
-- Remove unneeded config files:
-
-      rm /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
-
-- Enable the Acuparse virtual host config:
-
-      cp /opt/acuparse/config/acuparse.conf /etc/apache2/sites-available/
-
-- Enable the Acuparse SSL virtual host config:
-
-      cp /opt/acuparse/config/acuparse-ssl.conf /etc/apache2/sites-available/
-
-- Ensure mod-rewrite is enabled:
-
-      a2enmod rewrite
-
-- Ensure SSL is enabled:
-
-      a2enmod ssl
-
-- Restart Apache:
-
-      service apache2 restart
-
-SSL Certificate Installation
-----------------------------
-
-By Default Apache will use the snake oil cert to serve over HTTPS. For most users, this should be sufficient. If you use
-a hostname, install a certificate!
-
-    wget https://gitlab.com/acuparse/installer/-/raw/master/resources/le && sudo bash le
+    git clone https://github.com/mobilevoid/weatherparse.git /opt/weatherparse
+    chown -R www-data:www-data /opt/weatherparse/src/usr /opt/weatherparse/src/pub/img
 
 Setup Database
 --------------
 
-- Create a new MySQL database for Acuparse:
+Create the database and user. Use a strong password of your own:
 
-    mysql -u root -p {MYSQL_ROOT_PASSWORD} -e "DELETE FROM mysql.user WHERE User=''; DELETE FROM mysql.user WHERE
-    User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); DROP DATABASE IF EXISTS test; DELETE FROM mysql.db WHERE
-    Db='test' OR Db='test\\_%'; FLUSH PRIVILEGES;"
+    mariadb -e "CREATE DATABASE IF NOT EXISTS weatherparse;
+    CREATE USER 'weatherparse'@'localhost' IDENTIFIED BY 'STRONGPASSWORD';
+    GRANT ALL ON weatherparse.* TO 'weatherparse'@'localhost';
+    GRANT EVENT ON weatherparse.* TO 'weatherparse'@'localhost';
+    GRANT RELOAD ON *.* TO 'weatherparse'@'localhost';
+    GRANT SUPER ON *.* TO 'weatherparse'@'localhost';
+    FLUSH PRIVILEGES;"
 
-    mysql -u root -p {MYSQL_ROOT_PASSWORD} -e "CREATE DATABASE IF NOT EXISTS acuparse;
-    CREATE USER 'acuparse' IDENTIFIED BY 'STRONGPASSWORD';
-    GRANT ALL ON acuparse.* TO 'acuparse'; GRANT EVENT ON acuparse.* TO 'acuparse';
-    GRANT RELOAD ON *.* TO 'acuparse'; GRANT SUPER ON *.* TO 'acuparse'; FLUSH PRIVILEGES;"
+Apache
+------
 
-Finish Up
----------
+    cp /opt/weatherparse/config/weatherparse.conf /etc/apache2/sites-available/
+    cp /opt/weatherparse/config/weatherparse-ssl.conf /etc/apache2/sites-available/
+    a2enmod rewrite ssl
+    a2dissite 000-default
+    a2ensite weatherparse weatherparse-ssl
+    systemctl restart apache2
 
-- Edit your cron to run the external updater script every minute:
+SSL Certificate
+---------------
 
-    crontab -e`, `* * * * * php /opt/acuparse/cron/cron.php > /dev/null 2>&1
+By default Apache uses the snake oil certificate for HTTPS. That is fine for the Access, which does not check the
+certificate. If you also serve the site under a hostname, install a real certificate for it.
 
-- Visit http://{IP_ADDRESS/HOSTNAME} to populate the database, create an account, and finish configuration.
+Access TLS (OpenSSL 3)
+----------------------
+
+The Access uses an old TLS version. On OpenSSL 3 (Debian 12 and 13) allow it in /etc/ssl/openssl.cnf, in the
+[system_default_sect] section:
+
+    MinProtocol = TLSv1.1
+    CipherString = DEFAULT@SECLEVEL=1
+
+Restart Apache after changing it.
+
+Web Installer
+-------------
+
+Visit http://<your server IP>/ to run the web installer. It creates the database schema and the first admin account.
+
+Cron
+----
+
+Edit root's crontab (crontab -e) and add:
+
+    * * * * * /usr/bin/php /opt/weatherparse/cron/cron.php > /opt/weatherparse/logs/cron.log 2>&1
+
+If you use a camera (see "Webcam Installation" below) also add:
+
+    */10 * * * * /bin/bash /opt/weatherparse/cam/webcam > /opt/weatherparse/logs/cron.log 2>&1
+    15 3 * * * /bin/bash /opt/weatherparse/cam/webcam cleanup > /opt/weatherparse/logs/cam-cleanup.log 2>&1
 
 Initial Configuration
 =====================
 
-- After setting the database configuration, you will need to add your Access/SmartHUB MAC address and sensor ID's.
-    - Visit /admin/settings and click on the Sensor tab.
+- After the web installer, add your Access/smartHUB MAC address and sensor IDs.
+    - Visit /admin/settings and open the Sensor tab.
     - Enter your MAC address with no spaces, dashes, or colons.
     - Enter your 8 digit Iris (5-in-1) or Atlas (7-in-1) ID including any leading 0's.
 
@@ -168,40 +144,76 @@ Check Installation
 Initial Readings
 ----------------
 
-It can take some time for your initial readings to populate the dashboard. You'll receive a No Data Received! message
-on your dashboard, until the initial readings are processed and stored.
+It can take some time for your initial readings to populate the dashboard. You will see a "No Data Received!" message
+until the first readings are processed and stored. Current Access firmware reports every 5 minutes.
 
-See Initial Readings Troubleshooting (https://docs.acuparse.com/TROUBLESHOOTING#initial-readings)
+See section "Initial Readings" in the Troubleshooting Guide
+(https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt).
 
 Syslog
 ------
 
-View your syslog to see the data flowing through your system and to look for any trouble. Enable debug logging for a
-more detailed view.
+WeatherParse logs to syslog as weatherparse(<version>). Watch the data flowing through your system and look for any
+trouble. Enable debug logging for a more detailed view.
 
-    tail -f /var/log/syslog
+    tail -f /var/log/syslog | grep weatherparse
+    journalctl -t weatherparse -f
 
-- See the Syslog Troubleshooting Guide (https://docs.acuparse.com/TROUBLESHOOTING#syslog) for more details
+Getting Access Data to WeatherParse
+===================================
 
----
-
-DNS Redirect
-============
+The Access sends its readings to atlasapi.myacurite.com. WeatherParse receives them when that name points at your
+WeatherParse server. There are two ways.
 
 Note:
-    Access users can use the included script to modify the Access upload server instead of, or as well as, redirecting DNS.
-    See /admin/access once logged into your site.
+    Access users can also change the Access upload server with the tool at /admin/access once logged in, instead of or
+    as well as redirecting DNS.
 
-If you are connecting your Access/smartHUB directly to Acuparse, you can install Bind9 and redirect the DNS locally.
-Otherwise, you will need a DNS server installed on your network. See the
-DNS Redirect Guide (https://docs.acuparse.com/other/DNS) for more details.
+DNS Override on Your Network
+----------------------------
+
+Set up a local DNS override for atlasapi.myacurite.com pointing to the IP address of your WeatherParse server.
+See the DNS Redirect Guide (https://github.com/mobilevoid/weatherparse/blob/main/docs/other/DNS.txt).
+
+Direct Connection (Raspberry Pi)
+--------------------------------
+
+Plug the Access into the Pi's Ethernet port. The Pi runs dnsmasq on that port, hands the Access an address and
+answers its DNS. Debian 12 and later name the onboard Ethernet port end0 (older systems: eth0); use the name your
+system shows (ip -br link).
+
+- Give the Ethernet port a fixed address, for example 192.168.6.1/24 (in NetworkManager: a manual IPv4 address with
+  never-default set, so it is not used for internet).
+
+- dnsmasq (/etc/dnsmasq.conf), DHCP only on the Access port:
+
+      interface=end0
+      dhcp-range=end0,192.168.6.50,192.168.6.100,255.255.255.0,24h
+      no-resolv
+      server=<your router IP>
+
+- /etc/hosts: point the AcuRite host at the Pi's own LAN address:
+
+      <your Pi IP> atlasapi.myacurite.com
+
+- Current Access firmware ignores the DNS server handed out by DHCP and asks 8.8.4.4 directly. Redirect the Access
+  subnet's DNS to the Pi's dnsmasq, share the Pi's internet with the Access, and save the rules:
+
+      iptables -t nat -A PREROUTING -i end0 -s 192.168.6.0/24 -p udp --dport 53 -j DNAT --to-destination 192.168.6.1:53
+      iptables -t nat -A PREROUTING -i end0 -s 192.168.6.0/24 -p tcp --dport 53 -j DNAT --to-destination 192.168.6.1:53
+      iptables -t nat -A POSTROUTING -o wlan0 -j MASQUERADE
+      echo net.ipv4.ip_forward=1 > /etc/sysctl.d/90-weatherparse.conf && sysctl --system
+      netfilter-persistent save
+
+- After adding the rules the Access may keep using its old DNS connection. Power cycle the Access, or clear its
+  connections with: conntrack -D -s <access ip>
 
 Manually Update Access Server
 -----------------------------
 
-Change to Acuparse:
+Change to WeatherParse:
 
-    curl -d 'ser=<ACUPARSE FQDN>' http://<ACCESS IP>/config.cgi
+    curl -d 'ser=<WEATHERPARSE FQDN>' http://<ACCESS IP>/config.cgi
 
 Reset to default:
 
@@ -210,20 +222,14 @@ Reset to default:
 smartHUB
 --------
 
-- Set up a local DNS override for hubapi.myacurite.com pointing to the external IP address of your Acuparse server.
-
-Access
-------
-
-- Set up a local DNS override for atlasapi.myacurite.com pointing to the external IP address of your Acuparse server.
+AcuRite's smartHUB service (hubapi.myacurite.com) no longer exists. A smartHUB still works with WeatherParse (point
+hubapi.myacurite.com at your server with a local DNS override), but its readings cannot be forwarded to MyAcuRite.
 
 Troubleshooting
 ---------------
 
-If your having trouble getting your Access readings sent to Acuparse, you might be running into trouble with
-the hardcoded DNS servers (https://docs.acuparse.com/TROUBLESHOOTING/#hardcoded-dns-servers).
-
----
+If your Access readings are not arriving, see section "Hardcoded DNS Servers" in the Troubleshooting Guide
+(https://github.com/mobilevoid/weatherparse/blob/main/docs/TROUBLESHOOTING.txt).
 
 Database Trimming
 =================
@@ -233,45 +239,46 @@ ballooning the database.
 
 When the external updater runs, it archives the most recent readings to the archive table for later use.
 
-Database trimming is accomplished via the MySQL event scheduler.
+Database trimming is done by the MariaDB event scheduler.
 
-- Recommend enabling trimming, unless you need the additional data.
-    - When enabled tower data is also trimmed. Should you wish to keep tower data, use that option instead.
+- Enabling trimming is recommended, unless you need the additional data.
+    - When enabled, tower data is also trimmed. Should you wish to keep tower data, use that option instead.
 
-If you find that the event scheduler is not behaving, ensure MySQL is up-to-date. Some upgrades from Debian 8 will not
-upgrade the database properly.
+If the event scheduler is not behaving, make sure MariaDB is up to date and its tables were upgraded after a version
+upgrade:
 
-    mysql_upgrade -u root -p {YOUR_SQL_ROOT_PASSWORD}
+    mariadb-upgrade
 
 Barometer Readings
 ==================
 
-You can modify the barometer readings used by Acuparse. Set your Access/smartHUB to use station pressure using MyAcuRite
-and adjust your offset.
+You can modify the barometer readings used by WeatherParse. Set your Access/smartHUB to use station pressure using
+MyAcuRite and adjust your offset.
 
-Readings are only modified in Acuparse and sent to 3rd party sites. It does not modify the reading MyAcuRite
+Readings are only modified in WeatherParse and sent to 3rd party sites. It does not modify the reading MyAcuRite
 receives from your Access/smartHUB.
 
-Check the syslog and watch for your changes. Once your Access/smartHUB is reporting updated readings, modify the
-Acuparse config with your required offset.
+Check the syslog and watch for your changes. Once your Access/smartHUB is reporting updated readings, set the
+offset in the WeatherParse settings.
 
 Uploading Data
 ==============
 
-Detailed instructions for each available in docs/external.
+Detailed instructions for each provider are in docs/external.
 
-- The cron job setup earlier will process your weather data and send updates to external sites automatically, as
+- The cron job set up earlier processes your weather data and sends updates to external sites automatically, as
   required.
-    - Data only sent to external sites when there is new data to send and enough time has passed for CWOP updates.
+    - Data is only sent to external sites when there is new data to send and enough time has passed for CWOP updates.
 
 Info:
-    It's recommended to disable the updating of Weather Underground from your Access/smartHUB/MyAcuRite when using Acuparse.
+    It's recommended to disable the updating of Weather Underground from your Access/smartHUB/MyAcuRite when using
+    WeatherParse.
 
 Master Sensor
 -------------
 
-By default, Acuparse will use the Iris/Atlas sensor to upload data to external sites. To upload data from a tower, change
-the Master Temp/Humidity Sensor.
+By default, WeatherParse uses the Iris/Atlas sensor to upload data to external sites. To upload data from a tower,
+change the Master Temp/Humidity Sensor.
 
 Changing the sensor sends those readings externally instead of the Iris/Atlas data. You can also choose to use the tower
 readings for the data archive or use the readings from the Iris/Atlas.
@@ -279,19 +286,26 @@ readings for the data archive or use the readings from the Iris/Atlas.
 Realtime Updates
 ----------------
 
-Acuparse supports the use of an RTL dongle along with a special relay service to facilitate realtime updates to weather data.
-See the RTL docs (https://docs.acuparse.com/REALTIME/) for more details on how to set this up.
+WeatherParse supports an RTL dongle together with the RTL Relay service (a separate project from Acuparse,
+acuparse/rtl-relay) for realtime updates to weather data. See the Realtime Guide
+(https://github.com/mobilevoid/weatherparse/blob/main/docs/REALTIME.txt).
 
 MyAcuRite Responses
--------------------
+===================
 
 Access
 ------
 
 Note:
-    The Access sends data using TLS1.1 encryption. A certificate is required to receive data from the Access.
+    The Access sends data using TLS 1.1 encryption. A certificate is required to receive data from the Access (the
+    default snake oil certificate works).
 
-When MyAcuRite receives your readings, it responds with a JSON response in the following format:
+WeatherParse forwards each Access reading to atlasapi.myacurite.com and returns MyAcuRite's answer to the Access.
+It looks the address up through DNS directly (not /etc/hosts), and never forwards to an address that belongs to
+the WeatherParse server itself, so the redirect that brings the readings in cannot cause a loop. If MyAcuRite cannot
+be reached, or forwarding is disabled, WeatherParse answers the Access itself.
+
+When MyAcuRite receives your readings, it responds with JSON in the following format:
 
     {
       "sensor1": "",
@@ -301,116 +315,91 @@ When MyAcuRite receives your readings, it responds with a JSON response in the f
       "ID1": ""
     }
 
-| Variable  | Description                                      |
-|-----------|--------------------------------------------------|
-| timezone  | Local timezone offset of the Access.             |
-| ID1       | Weather Underground Station ID.                  |
-| PASSWORD1 | Weather Underground Station Password.            |
-| sensor1   | Sensor used to send data to Weather Underground. |
-| elevation | Elevation of the Access in feet.                 |
+    Variable    Description
+    timezone    Local timezone offset of the Access.
+    ID1         Weather Underground Station ID.
+    PASSWORD1   Weather Underground Station Password.
+    sensor1     Sensor used to send data to Weather Underground.
+    elevation   Elevation of the Access in feet.
 
 - A typical response:
 
-        {"timezone":"00:00""}
+      {"timezone":"00:00"}
 
 smartHUB
 --------
 
 Warning:
-    The smartHUB is now obsolete and no longer supported by Acurite. Acurite Access is the recommended replacement.
+    The smartHUB is obsolete and no longer supported by AcuRite. The AcuRite Access is the recommended replacement.
 
-Acurite is no longer accepting updates from the smartHUB. The smartHUB will continue to work with Acuparse, but will not
-send updates to Acurite. To continue to support the smartHUB Acuparse will now always respond with the below JSON response.
+AcuRite no longer accepts updates from the smartHUB. The smartHUB will continue to work with WeatherParse, but will not
+send updates to AcuRite. WeatherParse always responds to the smartHUB with:
 
     {
       "localtime": "00:00:00",
       "checkversion": "224"
     }
 
-Setting localtime to the local time of your Acuparse install.
-
-Legacy smartHUB MyAcurite Response (Archive Purposes Only)
-----------------------------------------------------------
-
-When MyAcuRite receives your readings, it responds with a JSON response in the following format:
-
-    {
-      "localtime": "00:00:00",
-      "checkversion": "",
-      "ID1": "",
-      "PASSWORD1": "",
-      "sensor1": "",
-      "elevation": ""
-    }
-
-| Variable     | Description                                                                                                      |
-|--------------|------------------------------------------------------------------------------------------------------------------|
-| localtime    | Local time the reading was received. Keeps time on the Access/smartHUB and is used mainly for rainfall readings. |
-| checkversion | The current firmware version available. Currently 224.                                                           |
-| ID1          | Weather Underground Station ID.                                                                                  |
-| PASSWORD1    | Weather Underground Station Password.                                                                            |
-| sensor1      | Sensor used to send data to Weather Underground.                                                                 |
-| elevation    | Elevation of the smartHUB in feet.                                                                               |
+With localtime set to the local time of your WeatherParse install.
 
 Email and Mailgun Settings
 ==========================
 
-Acuparse will attempt to use a locally installed email server. You can enable Mailgun instead in your Admin Settings.
+WeatherParse will attempt to use a locally installed email server. You can enable Mailgun instead in your Admin
+Settings.
 
 Mailgun
 -------
 
-You will need your Mailgun API key and domain to configure.
-
-See How Do I Add or Delete a Domain? (https://help.mailgun.com/hc/en-us/articles/203637190-How-Do-I-Add-or-Delete-a-Domain-)
+You will need your Mailgun API key and domain to configure. See Mailgun's current instructions for adding a domain.
 
 Email Outage Notifications
 ==========================
 
-Outage notifications are sent to all registered admins. You can configure some simple values for outage checking, the
-system will email you when there is no data received.
+Outage notifications are sent to all registered admins. You can configure some simple values for outage checking; the
+system will email you when no data is received.
 
-The updater first checks to see if there is new data to send. If there isn't, it will start the email process. If there
-is no new data due to updates not being received in the configured period, Acuparse will send an email at your chosen
-interval.
+The updater first checks to see if there is new data to send. If there isn't, it will start the email process. If
+there is no new data due to updates not being received in the configured period, WeatherParse will send an email at
+your chosen interval.
 
 Tower Sensors
 =============
 
-Acuparse allows for the addition of as many Tower sensors as the Access/smartHUB will pass along. You can choose which
+WeatherParse allows the addition of as many Tower sensors as the Access/smartHUB will pass along. You can choose which
 sensors are shown publicly or only to logged-in users. Towers are configured and arranged using the admin settings.
 
-- Acuparse also supports Indoor/Outdoor Temp and Humidity monitors, as well as lightning towers.
+- WeatherParse also supports Indoor/Outdoor Temp and Humidity monitors, as well as lightning towers.
 
 Lightning Sensors
 =================
 
 You can have a main Lightning sensor on your Atlas, as well as one Tower sensor. Configure the Lightning sensor settings
-in your admin site settings inorder to display those readings.
+in your admin site settings in order to display those readings.
 
 Filter Access Readings
 ======================
 
 The Access can send unwanted erroneous readings. Filtering is enabled by default. You can disable the filtering of these
-readings in the Admin -> System Settings -> Sensor tab.
+readings in Admin, System Settings, Sensor tab.
 
-Acuparse will check the incoming Access readings and drop any that meet ALL the conditions below. Dropped readings will
-not flow through to MyAcuRite and will not be saved to the database.
+WeatherParse checks the incoming Access readings and drops any that meet ALL the conditions below. Dropped readings
+do not flow through to MyAcuRite and are not saved to the database.
 
-The dropped readings will be reported in your logs and Acuparse will still send a response to your Access.
+The dropped readings are reported in your logs and WeatherParse still sends a response to your Access.
 
 Filtered Readings
 -----------------
 
-Readings that have a tempF of -40 OR 0, relH of 0 OR 1, and 0 wind speeds. As well as, 0 light and UV
-readings from the Atlas.
+Readings that have a tempF of -40 OR 0, relH of 0 OR 1, and 0 wind speeds. As well as 0 light and UV readings from
+the Atlas.
 
 Additional Outputs
 ==================
 
 The primary user interface uses AJAX to pull the most recent HTML formatted data from the API automatically.
 
-Acuparse includes a special display mode for better viewing while in full-screen.
+WeatherParse includes a display mode for better viewing while in full-screen.
 
 - Display Mode: http(s)://<yourip/domain>/display
     - Force light theme: http(s)://<yourip/domain>/display?light
@@ -418,135 +407,114 @@ Acuparse includes a special display mode for better viewing while in full-screen
 
 Additionally, you can request Bootstrap 5 formatted HTML, JSON array(s), or plain text formatted for watermarking.
 
-- See the API Guide (https://docs.acuparse.com/API) for details.
+- See the API Guide (https://github.com/mobilevoid/weatherparse/blob/main/docs/API.txt).
 
 Webcam Installation (optional)
 ==============================
 
-The script webcam is included in the cam directory. It's used to capture and process images from an IP camera.
-You will need to be able to get an image snapshot from your camera via http, or an RTSP stream.
+The webcam script in the cam directory captures and processes images from an IP camera. You need to be able to get a
+snapshot from your camera over http, or an RTSP stream. ImageMagick and ffmpeg must be installed.
 
-Images are stored in src/pub/img/cam. They should be backed up regularly to avoid loss.
+Images are stored in src/pub/img/cam (website) and cam/archive (local archive).
 
-The webcam script combines what was previously three template scripts into an all-in-one script. Allowing for it to be version controlled and no
-longer needs to be updated between releases. You will still need to manually update local systems not running Acuparse.
+The webcam script operates in three modes, set with MODE in cam/config.env:
 
-Updating from local, remote or, combined scripts?
+    Mode       Description
+    combined   The camera and WeatherParse are on the same network. Use this in almost all installs.
+    local      Runs on a host local to the camera (such as an NVR) and sends the image to a remote WeatherParse
+               server. The website image is NOT updated on this host.
+    remote     Processes an image sent by a "local" host, on the WeatherParse server.
 
-Copy config.env from cam/templates to cam, then copy your settings from the existing scripts into config.env.
+Warning:
+    Use combined when the camera and WeatherParse are reachable from the same machine. Setting local on the
+    WeatherParse server itself means the website camera image never updates.
 
-Update your crontab entry to use the new webcam script, ensure your using bash and not sh.
+Combined System Setup
+---------------------
 
-0,15,30,45 * * * * /bin/bash /opt/acuparse/cam/webcam > /dev/null 2>&1
+- Copy config.env from cam/templates to the cam folder and edit it: MODE='combined', the camera URL (an http
+  snapshot URL, or with USE_RTSP=1 an rtsp:// URL such as rtsp://<user>:<password>@<camera ip>/<stream path>),
+  and your watermark text.
 
-The webcam script operates in three modes:
+      cp /opt/weatherparse/cam/templates/config.env /opt/weatherparse/cam/
 
-| Script Mode | Description                                                                                     |
-|-------------|-------------------------------------------------------------------------------------------------|
-| local     | Runs on a host local to the camera (such as an NVR) and sends the image to the Acuparse server. |
-| remote    | Processes an image on the Acuparse server.                                                      |
-| combined  | Processes an image when the camera and Acuparse are both available locally.                     |
+- Image retention: KEEP_DAYS in cam/config.env (default 30, 0 keeps everything). The daily cleanup job removes
+  website day folders and archive images older than that, so the archive cannot fill your SD card.
 
-The combined mode is the default and should be used when you can access your camera from your Acuparse system.
-For installs where your camera is not on the same local network as your Acuparse system, use the local and remote modes.
+- Cron (root): capture every 10 minutes, cleanup once a day:
+
+      */10 * * * * /bin/bash /opt/weatherparse/cam/webcam > /opt/weatherparse/logs/cron.log 2>&1
+      15 3 * * * /bin/bash /opt/weatherparse/cam/webcam cleanup > /opt/weatherparse/logs/cam-cleanup.log 2>&1
+
+  The script uses a lock, so a slow run is skipped instead of overlapping the next one.
 
 Local/Remote Setup
 ------------------
 
 Local System
-------------
 
 Note:
-    Local scripts will need to be updated if the webcam script changes.
+    Local scripts need to be updated by hand if the webcam script changes.
 
-- On the system local to your camera, download the templates
-
-    - ZIP File (https://gitlab.com/acuparse/acuparse/-/archive/stable/acuparse-stable.zip?path=cam/templates)
-    - TAR.GZ File (https://gitlab.com/acuparse/acuparse/-/archive/stable/acuparse-stable.tar.gz?path=cam/templates)
-    - Text (https://gitlab.com/acuparse/acuparse/-/tree/stable/cam/templates)
-
-- Extract the templates and move them into a new Acuparse directory.
-
-      mkdir -p /opt/acuparse && \
-      cp cam/ /opt/acuparse/ && \
-      cd /opt/acuparse
-
-- Copy config.env from cam/templates to the cam folder and modify the variables in config.env, setting the mode to local.
-
-      cp cam/templates cam/
-
+- On the system local to your camera, copy the cam folder from a WeatherParse checkout
+  (https://github.com/mobilevoid/weatherparse) to /opt/weatherparse/cam.
+- Copy config.env from cam/templates to the cam folder and edit it, setting the mode to local.
 - Set up a cron job to process the image:
 
-      crontab -e`, `0,15,30,45 * * * * /bin/bash /opt/acuparse/cam/webcam > /dev/null 2>&1
+      */10 * * * * /bin/bash /opt/weatherparse/cam/webcam > /dev/null 2>&1
 
-- Setup SSH keys, so you can log in to your remote host from the local host without a password
+- Set up SSH keys, so you can log in to your remote host from the local host without a password:
 
       ssh-copy-id -i ~/.ssh/{YOUR_KEY} {USERNAME}@{HOSTNAME}
 
-Remote Acuparse System
-----------------------
+Remote WeatherParse System
 
-- Copy config.env from cam/templates to the cam folder and modify the variables in config.env, setting the mode to remote.
+- Copy config.env from cam/templates to the cam folder and edit it, setting the mode to remote.
 
-      cp /opt/acuparse/cam/templates/config.env /opt/acuparse/cam
-
-Combined System Setup
----------------------
-
-- Copy config.env from cam/templates to the cam folder and modify the variables in config.env, setting the mode to combined.
-
-      cp /opt/acuparse/cam/templates/config.env cam/
-
-- Set up a cron job to process the image:
-
-      crontab -e`, `0,15,30,45 * * * * /bin/bash /opt/acuparse/cam/webcam > /dev/null 2>&1
-
-Info:
-    Ensure ImageMagick is installed and available. Otherwise, images will not get processed.
+      cp /opt/weatherparse/cam/templates/config.env /opt/weatherparse/cam/
 
 Backup/Restore
 ==============
 
-A script is included in cron to run daily backups. It will run automatically on Docker installs, but local installs
-will need to enable this manually.
+A backup script is included in cron. Local installs need to enable it manually.
 
-- See the Backup Guide (https://docs.acuparse.com/other/BACKUPS) for details.
+- See the Backup Guide (https://github.com/mobilevoid/weatherparse/blob/main/docs/other/BACKUPS.txt).
 
 Southern Hemisphere Support
 ===========================
 
-Users in the Southern Hemisphere generally install their stations pointing North and not South for the solar panels to operate properly. This leads
-to an incorrect (opposite) wind direction reading. Acuparse includes a feature to switch your wind direction readings to support installations in the
-Southern Hemisphere.
+Users in the Southern Hemisphere generally install their stations pointing North and not South for the solar panels
+to operate properly. This leads to an incorrect (opposite) wind direction reading. WeatherParse can switch your wind
+direction readings to support installations in the Southern Hemisphere.
 
-The raw wind degrees readings received by Acuparse will be reversed and used for all external uploaders and system readings.
-Raw data forwarded to MyAcurite will not be modified.
+The raw wind degrees received by WeatherParse are reversed and used for all external uploaders and system readings.
+Raw data forwarded to MyAcuRite is not modified.
 
 - Available under Southern Hemisphere Support on the System Settings, Sensor tab.
 
 Google Settings
 ===============
 
+All analytics and tracking options are off by default.
+
 Analytics
 ---------
 
-You can add your Google Analytics tracking code to appear on your website.
-
-Enter your Tracking ID (https://support.google.com/analytics/answer/7372977?hl=en) in your site settings.
+You can add your Google Analytics tracking ID in your site settings.
 
 Invisible reCAPTCHA
 -------------------
 
-Recaptcha loads on the authentication and contact forms, as well as, when requesting a password reset.
+reCAPTCHA loads on the authentication and contact forms, and when requesting a password reset.
 
-- Sign up for a reCAPTCHA account at google.com/recaptcha (https://www.google.com/recaptcha).
+- Sign up for a reCAPTCHA account (https://www.google.com/recaptcha).
 - Select Invisible reCAPTCHA when registering your new site.
 - Enter your site key and secret in your site settings.
 
 Matomo
 ======
 
-Acuparse also includes the ability to report tracking data to Matomo.
+WeatherParse can report tracking data to your own Matomo install (off by default).
 
 Enter your Site ID (https://matomo.org/faq/general/faq_19212) and Matomo install domain in your system settings.
 

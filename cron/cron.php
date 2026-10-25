@@ -151,8 +151,11 @@ if ($installed === true) {
                 }
             }
 
-            // Check the readings to ensure we are not uploading 0's.
-            if ($data->tempF !== 0 && $data->relH !== 0) {
+            // Maintenance mode: the sensor is being serviced, keep recording but do not upload anywhere
+            if (($config->station->maintenance ?? false) === true) {
+                syslog(LOG_NOTICE, "(SYSTEM){CRON}: Maintenance mode - external uploads paused");
+            } // Check the readings to ensure we are not uploading 0's.
+            elseif ($data->tempF !== 0 && $data->relH !== 0) {
 
                 syslog(LOG_NOTICE, "(SYSTEM){CRON}: Updating External Providers ...");
 
