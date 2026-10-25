@@ -115,6 +115,10 @@ function _cleanup() {
   fi
 }
 
+# Only one run at a time (a slow camera or cleanup must not overlap the next cron run).
+exec 9>/tmp/acuparse-webcam.lock
+flock -n 9 || { echo "Another webcam run is still busy; skipping"; exit 0; }
+
 # shellcheck source=/builds/acuparse/acuparse/cam/templates/config.env
 source /opt/acuparse/cam/config.env
 
