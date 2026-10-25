@@ -1,7 +1,0 @@
-**What happened?**
-
-**What did you expect to happen?**
-
-**WeatherParse version, OS and PHP version** (Admin > Settings shows the version; `php -v` shows PHP):
-
-**Relevant log lines** (`journalctl -t weatherparse` or `/var/log/apache2/error.log`). Remove passwords, keys and addresses first.

@@ -10,8 +10,8 @@ vendor
 .markdownlint.yml
 composer.json
 composer.lock
-CONTRIBUTING.md
+CONTRIBUTING.txt
 Dockerfile
 mkdocs.yml
-README.md
-CHANGELOG.md
+README.txt
+CHANGELOG.txt

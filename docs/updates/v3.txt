@@ -1,0 +1,104 @@
+ACUPARSE VERSION 3.0 UPDATE GUIDE
+=================================
+
+Version 3.0 includes major updates and database changes! If you are currently using the Webcam Scripts and or the
+JSON/HTML data endpoints, you will need to update your scripts to reflect the new data locations.
+
+NOTE: You will break your Webcam watermarks and JSON/HTML endpoints after the update!
+
+It's highly recommended that you make a backup of your install, especially your database, before continuing.
+
+    mysqldump -u<MYSQL_USER> -p<MYSQL_PASSWORD> acuparse > <BACKUP_TMP_DIR>/mysql.sql
+
+Notes
+=====
+
+The GIT branch for releases is changing from master to stable during this release. Running the script below will
+update your repository to pull code from the new branch. The script will also attempt to update your Apache config, to
+enable options needed for the API.
+
+Docker Support
+--------------
+
+Initial Docker support comes with Version 3. Note that this is still in early support and there may be bugs lingering.
+Please open a support ticket for any trouble using the Docker Container or Docker Compose.
+
+The image is hosted on Docker Hub (https://hub.docker.com/r/acuparse/acuparse)
+
+API and JSON Data
+-----------------
+
+The JSON data endpoint has been moved to the API. You must update any scripts you are using to get data from the new
+API. For details see docs/API.txt (https://docs.acuparse.com/API).
+
+Browser/Proxy Timeouts
+----------------------
+
+During the upgrade, the browser can timeout or not refresh as expected.
+
+If you are using Cloudflare proxy you should disable it before the update, or you could receive Error 524 timeouts.
+
+The script will still be running in the background. You can watch the update progress on the command line by running.
+
+    tail -f /var/log/syslog | grep "(SYSTEM){UPDATER}"
+
+To check after the update
+
+    cat /var/log/syslog | grep "(SYSTEM){UPDATER}"
+
+Look for (SYSTEM){UPDATER}: DONE 3.0.0
+
+Access or SmartHub
+------------------
+
+Starting with Version 3, only one device is supported. If you are currently using both an Access and a SmartHub,
+Acuparse will only use your Access. To use the SmartHub instead, update your sensor configuration with your Hub MAC.
+
+Webcams
+-------
+
+The webcam scripts have been updated. Recommend copying your values from your old scripts, to the new ones.
+
+The webcam watermark location has changed. Find and update the below lines within your remote/combined webcam
+scripts.
+
+- STATION_INFO=$(wget 'http://127.0.0.1/api/v1/text/watermark/' -q -O -)
+
+No Data Messages
+----------------
+
+You may receive no data messages on your dashboard after updating. This is caused by database timestamps being reset
+during the update. These messages should disappear once new readings are received.
+
+Updating
+========
+
+- You must run the updater script to update your local config for Version 3.
+
+        curl -O https://gitlab.com/acuparse/installer/-/raw/master/resources/update_v3 && sudo bash update_v3 | tee ~/acuparse.log
+
+- After running the update script, visit your Acuparse install to complete the update.
+
+Migrate from 2.10 based local install to a Container-based install
+------------------------------------------------------------------
+
+The v3 update script is not required when migrating to a container.
+
+You must review the Docker Install Guide (https://docs.acuparse.com/DOCKER/) to properly configure your containers
+
+When using Docker Compose the /var/opt/acuparse/backups directory inside the DB/APP containers is linked
+to /opt/acuparse/volumes/backups
+on your host machine.
+
+1. Copy existing /opt/acuparse/src/usr/config.php to config.php.migrate in a temporary/working directory.
+1. Edit config.php.migrate and update the database host from localhost to db.
+1. Backup the database mysqldump -uacuparse -p<PASSWORD> acuparse > dbbackup.sql.
+1. Start the Acuparse containers by running acuparse start.
+1. Copy the database backup and config to the backup
+   directory. cp dbbackup.sql config.php.migrate /opt/acuparse/volumes/backups
+1. Run acuparse dbconsole then execute
+    1. mysql -uacuparse -p<PASSWORD> -e "DROP DATABASE acuparse;".
+    1. mysql -uacuparse -p<PASSWORD> acuparse < /var/opt/acuparse/backups/dbbackup.sql.
+1. Run acuparse console then
+   execute mv /var/opt/acuparse/backups/config.php.migrate /opt/acuparse/src/usr/config.php.
+1. Visit your Acuparse site in the browser to complete the upgrade process.
