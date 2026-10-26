@@ -1,56 +1,99 @@
 WEATHERPARSE BACKUP GUIDE
 =========================
 
-A backup script is included in cron/backup. It runs automatically in the Docker container; local installs need to
-enable it manually.
+cron/backup makes incremental snapshots of WeatherParse: the database, the settings (src/usr/config.php and
+cam/config.env) and, if wanted, the camera pictures. It can save to a local folder, an NFS export or an SMB
+(Windows/Samba) share, keeps a set number of snapshots, and runs daily, weekly or monthly.
 
-Docker Containers
-=================
+How the snapshots work
+======================
 
-The backup task is enabled in the container by default. Set BACKUPS_ENABLED=0 in the container environment to
-disable it. See docs/DOCKER.txt, section "Backup/Restore".
+Every run makes a folder named after the date and time, for example 2026-10-25_0330:
+
+    2026-10-25_0330/
+        database/weatherparse.sql.gz     full database dump
+        files/src/usr/config.php         settings
+        files/cam/...                    camera settings and archive
+        files/src/pub/img/cam/...        camera web pictures
+
+Each snapshot looks like a full backup and can be restored on its own. Files that did not change since the
+previous snapshot are hard links to it, so they take no extra space: after the first run, a snapshot only costs the
+database dump plus the new pictures. Deleting an old snapshot never damages a newer one.
+
+A snapshot is written to a hidden ".incomplete-..." folder first and renamed only when it is complete, so an
+interrupted run never leaves a half snapshot that looks good.
+
+Rotation keeps the newest KEEP_SNAPSHOTS snapshots and removes older ones after each successful run.
 
 Local Install
 =============
 
-Backup
-------
+1. Copy the settings template and protect it:
 
-- Copy the backup script to your home directory:
+       sudo cp /opt/weatherparse/cron/templates/backup.conf /opt/weatherparse/cron/backup.conf
+       sudo chmod 600 /opt/weatherparse/cron/backup.conf
 
-      cp /opt/weatherparse/cron/backup ~/
+2. Edit cron/backup.conf: choose BACKUP_TARGET (local, nfs or smb), the schedule, the time and KEEP_SNAPSHOTS.
+   The database login is read from WeatherParse's own config.php, so you do not need to enter it.
 
-- Set MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOSTNAME and MYSQL_DATABASE at the top of the script (MYSQL_DATABASE defaults
-  to weatherparse; installs upgraded from Acuparse usually use acuparse). The script passes the password through
-  MYSQL_PWD, so it does not show in the process list.
-- Optionally edit KEEP_BACKUPS_FOR and BACKUP_CAM_IMAGES.
-- Add the backup script to root's cron, for example daily at 00:05:
+3. Install the packages for the target you chose:
 
-      crontab -l | { cat; echo "5 0 * * * /bin/bash ~/backup"; } | crontab -
+       sudo apt install rsync nfs-common      # NFS
+       sudo apt install rsync cifs-utils      # SMB
+
+4. Make the first snapshot by hand and check it:
+
+       sudo /opt/weatherparse/cron/backup
+       sudo /opt/weatherparse/cron/backup list
+
+5. Install the schedule (writes /etc/cron.d/weatherparse-backup; run it again after changing the schedule):
+
+       sudo /opt/weatherparse/cron/backup install-cron
+
+The log of the last run is in /opt/weatherparse/logs/backup.log, and every run also writes to the system log
+with the tag weatherparse-backup.
+
+NFS
+---
+
+Set NFS_EXPORT=server:/path. The export must let this machine write as root (TrueNAS: "Maproot User" root;
+Linux: no_root_squash). Allow only this machine's address on the export.
+
+SMB
+---
+
+Set SMB_SHARE=//server/share and SMB_CREDENTIALS to a file (chmod 600) with:
+
+    username=backupuser
+    password=secret
+    domain=WORKGROUP
+
+Some SMB servers do not support hard links. The script tests this; if they are not supported, each snapshot is a
+full copy (it says so in the log), so keep KEEP_SNAPSHOTS low or turn off BACKUP_CAM_IMAGES.
+
+Several stations can share one export: each saves in its own folder (BACKUP_SUBDIR, the host name by default).
 
 Restore
--------
+=======
 
-Extract the backup archive:
+Restore the newest snapshot, or a named one:
 
-    tar -xvf /var/opt/weatherparse/backups/<BACKUPDATE>.tar.gz
+    sudo /opt/weatherparse/cron/backup restore
+    sudo /opt/weatherparse/cron/backup restore 2026-10-25_0330
 
-Then restore your database (use your own database name):
+This loads the database dump and copies the files back. You can also copy single files out of a snapshot folder by
+hand; they are ordinary files.
 
-    mariadb weatherparse < mysql.sql
+Docker Containers
+=================
 
-Copy your config file back:
-
-    cp config.php /opt/weatherparse/src/usr/config.php
+The container runs the backup once a day and saves to /var/opt/weatherparse/backups inside the container (map a
+volume there to keep it). It takes the database login from the container environment. Set BACKUPS_ENABLED=0 to
+turn it off, KEEP_BACKUPS_FOR to set how many daily snapshots to keep (7 by default) and BACKUP_CAM_IMAGES=0 to
+leave out the pictures. Copy the volume to another machine for an off-box copy. See docs/DOCKER.txt.
 
 Off-Box Copies
---------------
+==============
 
-A backup on the same SD card or disk does not protect you from losing that card. Copy the backup files to another
-machine, and check that you can read them (for example gzip -t on the archive) before you rely on them.
-
-Updates
--------
-
-The copy of the script in your home directory is not updated automatically. Update it by hand when the changelog
-mentions changes to cron/backup.
+A backup on the same SD card or disk does not protect you from losing that card. Use an NFS or SMB target, or copy
+the local folder to another machine, and test a restore before you rely on it.

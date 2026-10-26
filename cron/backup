@@ -25,87 +25,202 @@
 ##
 # File: cron/backup
 # WeatherParse Backup Script
+#
+# Incremental snapshots: every run makes a dated folder that looks like a full backup, but files that did not change
+# since the previous snapshot (camera pictures, mostly) are hard links to it, so they take no extra space.
+# Targets: a local folder, an NFS export or an SMB share. Rotation keeps the newest KEEP_SNAPSHOTS snapshots.
+#
+# Usage:
+#   backup                    make a snapshot now (also what cron runs)
+#   backup restore [NAME]     restore the newest snapshot, or the one named NAME (a folder like 2026-10-25_0300)
+#   backup list               list snapshots
+#   backup install-cron       write /etc/cron.d/weatherparse-backup from BACKUP_SCHEDULE
+#
+# Settings: cron/backup.conf (start from cron/templates/backup.conf). Without it the script uses the environment
+# (as the Docker container does): MYSQL_HOSTNAME, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE, BACKUPS_ENABLED,
+# KEEP_BACKUPS_FOR (days), BACKUP_CAM_IMAGES, and saves to /var/opt/weatherparse/backups.
 ##
 
-##########################
-### REQUIRED VARIABLES ###
-##########################
+set -o pipefail
 
-#MYSQL_USER=weatherparse
-#MYSQL_DATABASE=weatherparse
-#MYSQL_PASSWORD=STRONG_PASSWORD
-#MYSQL_HOSTNAME=localhost
-KEEP_BACKUPS_FOR=${KEEP_BACKUPS_FOR:-7}   # Days. Default = 7.
-BACKUP_CAM_IMAGES=${BACKUP_CAM_IMAGES:-1} # Set to 0 to skip backing up images. Can slow down and increase backup size substantially.
+WEATHERPARSE_DIR=${WEATHERPARSE_DIR:-/opt/weatherparse}
+CONF=${BACKUP_CONF:-$WEATHERPARSE_DIR/cron/backup.conf}
 
-### Other Variables ###
+# Defaults (backup.conf or the environment can override every one)
+BACKUPS_ENABLED=${BACKUPS_ENABLED:-1}
+BACKUP_TARGET=${BACKUP_TARGET:-local}            # local, nfs or smb
+BACKUP_LOCAL_DIR=${BACKUP_LOCAL_DIR:-/var/opt/weatherparse/backups}
+NFS_EXPORT=${NFS_EXPORT:-}                       # server:/path
+NFS_OPTIONS=${NFS_OPTIONS:-vers=3,hard,timeo=600}
+SMB_SHARE=${SMB_SHARE:-}                         # //server/share
+SMB_CREDENTIALS=${SMB_CREDENTIALS:-}             # file with username=, password=, domain= (chmod 600)
+SMB_OPTIONS=${SMB_OPTIONS:-vers=3.0}
+MOUNT_POINT=${MOUNT_POINT:-/mnt/weatherparse-backup}
+BACKUP_SUBDIR=${BACKUP_SUBDIR:-$(hostname -s)}
+BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-daily}        # daily, weekly or monthly (for install-cron)
+BACKUP_TIME=${BACKUP_TIME:-03:30}                # HH:MM (for install-cron)
+BACKUP_CAM_IMAGES=${BACKUP_CAM_IMAGES:-1}        # 1 = include camera pictures
 
-MYSQL_DATABASE=${MYSQL_DATABASE:-weatherparse}
-export MYSQL_PWD="$MYSQL_PASSWORD"
+[ -f "$CONF" ] && . "$CONF"
 
-BACKUPS_ENABLED=${BACKUPS_ENABLED:-1} # Set to 0 to disable.
-BACKUP_TMP_DIR=/var/opt/weatherparse/backups/tmp
-BACKUP_DIR=/var/opt/weatherparse/backups
-WEATHERPARSE_DIR=/opt/weatherparse
-
-########################
-#### END: Variables ####
-########################
-
-function _backup() {
-  # Grab the date
-  DATE=$(date -I)
-
-  # Remove Old Backups (Controlled by "KEEP_BACKUPS_FOR")
-  echo "Removing backup files older than $KEEP_BACKUPS_FOR days"
-  find "$BACKUP_DIR" -maxdepth 1 -name "*.tar.gz" -type f -mtime +"$KEEP_BACKUPS_FOR" -exec rm -f {} \;
-
-  # Create TMP Folder
-  mkdir -p "$BACKUP_TMP_DIR"
-
-  # Backup All MySQL Databases
-  echo "Dumping MySQL Databases"
-  mysqldump -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" "$MYSQL_DATABASE" >"$BACKUP_TMP_DIR"/mysql.sql
-
-  # Backup WeatherParse Config
-  echo "Dumping WeatherParse Config"
-  cp "$WEATHERPARSE_DIR"/src/usr/config.php "$BACKUP_TMP_DIR"/config.php >/dev/null 2>&1
-
-  # Combine Backup Files to Daily Package
-  echo "Packaging and Compressing Archive"
-  BACKUP_FILES=$(find "$BACKUP_TMP_DIR" -maxdepth 1 -type f -printf "%P " | sed 's/[[:space:]]*$//')
-  tar -cvzf "$BACKUP_DIR"/"$DATE".tar.gz -C "$BACKUP_TMP_DIR" "$(echo "$BACKUP_FILES" | xargs)"
-
-  if [ "$BACKUP_CAM_IMAGES" == 1 ]; then
-    echo "Backing up Webcam Images"
-    tar -uvf "$BACKUP_DIR"/webcam.tar -C "$WEATHERPARSE_DIR"/src/pub/img/cam .
-  fi
-  echo "DONE: Packaging and Compressing Archive"
-
-  # Remove Temp Files
-  echo "Cleaning up TMP files"
-  rm -rf "$BACKUP_TMP_DIR"
-}
-
-function _restore() {
-  TAR_FILE=$(find . -maxdepth 1 -name '*.tar.gz' -type f -printf %P | sort -r | head -n 1 | cut -d' ' -f2)
-  mkdir -p "$BACKUP_TMP_DIR"
-  tar -zxf "$BACKUP_DIR"/"$TAR_FILE" --directory "$BACKUP_TMP_DIR" >/dev/null 2>&1
-  echo "Restoring SQL data"
-  mysql -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" "$MYSQL_DATABASE" <"$BACKUP_TMP_DIR"/mysql.sql >/dev/null 2>&1
-  echo "Restoring WeatherParse data"
-  cp "$BACKUP_TMP_DIR"/config.php "$WEATHERPARSE_DIR"/src/usr/config.php >/dev/null 2>&1
-  rm -rf "$BACKUP_TMP_DIR"
-}
-
-if [ "$1" == 'restore' ]; then
-  echo "Restoring Backup"
-  _restore
-  echo "Done: Restoring Backup"
-else
-  if [ "$BACKUPS_ENABLED" == 1 ]; then
-    echo "Beginning Backup ... this can take a while!"
-    _backup
-    echo "Backup Complete!"
-  fi
+# Rotation: KEEP_SNAPSHOTS wins; otherwise the old KEEP_BACKUPS_FOR (days) is turned into a count for daily runs
+if [ -z "${KEEP_SNAPSHOTS:-}" ]; then
+  KEEP_SNAPSHOTS=${KEEP_BACKUPS_FOR:-7}
 fi
+
+LOG_TAG=weatherparse-backup
+log() { echo "$*"; logger -t "$LOG_TAG" "$*" 2>/dev/null || true; }
+die() { log "ERROR: $*"; exit 1; }
+
+# Database settings: the environment (Docker) or WeatherParse's own config file
+db_settings() {
+  if [ -z "${MYSQL_USER:-}" ] && [ -f "$WEATHERPARSE_DIR/src/usr/config.php" ]; then
+    eval "$(php -r '
+      $c = include $argv[1];
+      foreach (["host" => "MYSQL_HOSTNAME", "username" => "MYSQL_USER", "password" => "MYSQL_PASSWORD", "database" => "MYSQL_DATABASE"] as $k => $v) {
+          echo $v . "=" . escapeshellarg((string)$c->mysql->$k) . "\n";
+      }' "$WEATHERPARSE_DIR/src/usr/config.php")"
+  fi
+  MYSQL_HOSTNAME=${MYSQL_HOSTNAME:-localhost}
+  MYSQL_DATABASE=${MYSQL_DATABASE:-weatherparse}
+  [ -n "${MYSQL_USER:-}" ] || die "no database settings (config.php missing and MYSQL_USER not set)"
+  export MYSQL_PWD="${MYSQL_PASSWORD:-}" # keeps the password off the command line
+}
+
+# Where snapshots live; mounts NFS/SMB when needed
+MOUNTED_BY_US=0
+open_target() {
+  case "$BACKUP_TARGET" in
+    local)
+      DEST="$BACKUP_LOCAL_DIR"
+      ;;
+    nfs)
+      [ -n "$NFS_EXPORT" ] || die "BACKUP_TARGET=nfs needs NFS_EXPORT=server:/path"
+      mkdir -p "$MOUNT_POINT"
+      if ! mountpoint -q "$MOUNT_POINT"; then
+        mount -t nfs -o "$NFS_OPTIONS" "$NFS_EXPORT" "$MOUNT_POINT" || die "cannot mount $NFS_EXPORT"
+        MOUNTED_BY_US=1
+      fi
+      DEST="$MOUNT_POINT/$BACKUP_SUBDIR"
+      ;;
+    smb)
+      [ -n "$SMB_SHARE" ] || die "BACKUP_TARGET=smb needs SMB_SHARE=//server/share"
+      [ -n "$SMB_CREDENTIALS" ] && [ -f "$SMB_CREDENTIALS" ] || die "BACKUP_TARGET=smb needs SMB_CREDENTIALS (a chmod 600 file)"
+      mkdir -p "$MOUNT_POINT"
+      if ! mountpoint -q "$MOUNT_POINT"; then
+        mount -t cifs -o "credentials=$SMB_CREDENTIALS,$SMB_OPTIONS,uid=0,gid=0,file_mode=0600,dir_mode=0700" "$SMB_SHARE" "$MOUNT_POINT" \
+          || die "cannot mount $SMB_SHARE (is cifs-utils installed?)"
+        MOUNTED_BY_US=1
+      fi
+      DEST="$MOUNT_POINT/$BACKUP_SUBDIR"
+      ;;
+    *) die "unknown BACKUP_TARGET '$BACKUP_TARGET' (local, nfs or smb)" ;;
+  esac
+  mkdir -p "$DEST" || die "cannot create $DEST"
+}
+
+close_target() {
+  [ "$MOUNTED_BY_US" = 1 ] && umount "$MOUNT_POINT" 2>/dev/null
+  return 0
+}
+
+snapshots() { find "$DEST" -mindepth 1 -maxdepth 1 -type d -regextype posix-extended -regex '.*/[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{4}' -printf '%f\n' | sort; }
+
+_backup() {
+  db_settings
+  open_target
+  trap close_target EXIT
+
+  local name tmp prev linkdest
+  name=$(date +%Y-%m-%d_%H%M)
+  tmp="$DEST/.incomplete-$name"
+  prev=$(snapshots | tail -n 1)
+  rm -rf "$tmp"
+  mkdir -p "$tmp/database" "$tmp/files" || die "cannot write to $DEST"
+
+  log "Snapshot $name to $BACKUP_TARGET ($DEST)"
+
+  # Database: a consistent dump
+  mysqldump --single-transaction --routines --events -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" "$MYSQL_DATABASE" | gzip >"$tmp/database/$MYSQL_DATABASE.sql.gz" \
+    || die "database dump failed"
+
+  # Files: settings, camera settings, camera pictures. Unchanged files are hard links to the previous snapshot.
+  local list=("src/usr/config.php" "cam/config.env")
+  if [ "$BACKUP_CAM_IMAGES" = 1 ]; then
+    list+=("src/pub/img/cam" "src/pub/img/cam2" "cam/archive" "cam/archive2")
+  fi
+  linkdest=()
+  if [ -n "$prev" ]; then
+    # Hard links need the target's support (NFS and local always; SMB depends on the server)
+    if ln "$DEST/$prev/.snapshot" "$tmp/.linktest" 2>/dev/null; then
+      rm -f "$tmp/.linktest"
+      linkdest=(--link-dest="$DEST/$prev/files")
+    else
+      log "WARNING: target does not support hard links; this snapshot is a full copy"
+    fi
+  fi
+  (cd "$WEATHERPARSE_DIR" && for p in "${list[@]}"; do [ -e "$p" ] && echo "$p"; done) >"$tmp/.list"
+  rsync -a -r --relative --files-from="$tmp/.list" "${linkdest[@]}" "$WEATHERPARSE_DIR/" "$tmp/files/" || die "copying files failed"
+  rm -f "$tmp/.list"
+
+  # Mark complete, then rotate
+  date -Iseconds >"$tmp/.snapshot"
+  mv "$tmp" "$DEST/$name" || die "cannot finish snapshot"
+  log "Snapshot $name complete ($(du -sh "$DEST/$name" 2>/dev/null | cut -f1) new data)"
+
+  local all count
+  all=$(snapshots)
+  count=$(echo "$all" | grep -c . || true)
+  if [ "$count" -gt "$KEEP_SNAPSHOTS" ]; then
+    echo "$all" | head -n $((count - KEEP_SNAPSHOTS)) | while read -r old; do
+      rm -rf "${DEST:?}/$old" && log "Removed old snapshot $old (keeping $KEEP_SNAPSHOTS)"
+    done
+  fi
+}
+
+_restore() {
+  db_settings
+  open_target
+  trap close_target EXIT
+  local name="${1:-$(snapshots | tail -n 1)}"
+  [ -n "$name" ] && [ -d "$DEST/$name" ] || die "no snapshot '$name' in $DEST"
+  log "Restoring snapshot $name"
+  gunzip -c "$DEST/$name/database/$MYSQL_DATABASE.sql.gz" | mysql -h"$MYSQL_HOSTNAME" -u"$MYSQL_USER" "$MYSQL_DATABASE" \
+    || die "database restore failed"
+  rsync -a "$DEST/$name/files/" "$WEATHERPARSE_DIR/" || die "file restore failed"
+  chown -R www-data:www-data "$WEATHERPARSE_DIR/src/usr" "$WEATHERPARSE_DIR/src/pub/img" 2>/dev/null
+  log "Restore of $name complete"
+}
+
+_install_cron() {
+  local h m when
+  h=${BACKUP_TIME%%:*}; m=${BACKUP_TIME##*:}
+  case "$BACKUP_SCHEDULE" in
+    daily) when="$((10#$m)) $((10#$h)) * * *" ;;
+    weekly) when="$((10#$m)) $((10#$h)) * * 0" ;;
+    monthly) when="$((10#$m)) $((10#$h)) 1 * *" ;;
+    *) die "BACKUP_SCHEDULE must be daily, weekly or monthly" ;;
+  esac
+  printf '# WeatherParse backup (%s). Written by: %s install-cron\n%s root /bin/bash %s > %s 2>&1\n' \
+    "$BACKUP_SCHEDULE" "$0" "$when" "$WEATHERPARSE_DIR/cron/backup" "$WEATHERPARSE_DIR/logs/backup.log" >/etc/cron.d/weatherparse-backup
+  chmod 644 /etc/cron.d/weatherparse-backup
+  log "Installed /etc/cron.d/weatherparse-backup: $BACKUP_SCHEDULE at $BACKUP_TIME, keeping $KEEP_SNAPSHOTS snapshots"
+}
+
+# One run at a time
+exec 8>/tmp/weatherparse-backup.lock
+flock -n 8 || { log "Another backup is running; skipping"; exit 0; }
+
+case "${1:-}" in
+  restore) _restore "${2:-}" ;;
+  list) open_target; trap close_target EXIT; snapshots ;;
+  install-cron) _install_cron ;;
+  "")
+    if [ "$BACKUPS_ENABLED" = 1 ]; then
+      _backup
+    else
+      log "Backups disabled (BACKUPS_ENABLED=$BACKUPS_ENABLED)"
+    fi
+    ;;
+  *) die "unknown command '$1' (use: restore [NAME], list, install-cron)" ;;
+esac

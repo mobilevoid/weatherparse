@@ -63,27 +63,22 @@ variables read by .docker/docker-entrypoint.
 Backup/Restore
 ==============
 
-The backup script (cron/backup) runs once a day in the container and saves backups to /var/opt/weatherparse/backups.
+The backup script (cron/backup) runs once a day in the container and makes an incremental snapshot in
+/var/opt/weatherparse/backups (map a volume there to keep it). Each snapshot is a dated folder with a database dump
+and the settings and camera pictures; unchanged files are hard links to the previous snapshot. See
+docs/other/BACKUPS.txt.
 
-Backup files are kept for 7 days by default; change this with KEEP_BACKUPS_FOR. Disable backups with BACKUPS_ENABLED=0.
+KEEP_BACKUPS_FOR sets how many snapshots to keep (7 by default). BACKUP_CAM_IMAGES=0 leaves out the pictures.
+BACKUPS_ENABLED=0 turns backups off.
 
-Restore Database
-----------------
+Restore
+-------
 
-Open a shell in the container and extract the archive:
+Open a shell in the container and run:
 
-    tar -xvf /var/opt/weatherparse/backups/<BACKUPDATE>.tar.gz
-
-Then restore the database (MYSQL_PWD keeps the password off the command line):
-
-    MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -h"$MYSQL_HOSTNAME" "$MYSQL_DATABASE" < mysql.sql
-
-Restore Config File
--------------------
-
-Extract the archive as above, then copy your config file back:
-
-    cp config.php /opt/weatherparse/src/usr/config.php
+    /opt/weatherparse/cron/backup list
+    /opt/weatherparse/cron/backup restore                  # the newest snapshot
+    /opt/weatherparse/cron/backup restore 2026-10-25_0005  # or a named one
 
 Realtime (RTL)
 ==============

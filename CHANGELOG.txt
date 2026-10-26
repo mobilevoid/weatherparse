@@ -24,6 +24,9 @@ Changed
 - Windy uploads use the Windy Stations API v2 (station ID plus station password; metric units). API v1 is retired.
 - MyAcuRite forwarding goes directly to AcuRite. The address is looked up in DNS (not /etc/hosts) so a local redirect
   cannot loop the data back, and the third-party acuparse.com relay option is gone.
+- Backups (cron/backup) are incremental snapshots (hard links for unchanged files) to a local folder, an NFS export or
+  an SMB share, with rotation (KEEP_SNAPSHOTS) and a daily, weekly or monthly schedule (backup install-cron). Settings
+  in cron/backup.conf (template in cron/templates). Restore with backup restore [NAME].
 - Documentation is plain text (.txt) with a manual install guide for Debian 12/13 and Raspberry Pi OS.
 
 Added

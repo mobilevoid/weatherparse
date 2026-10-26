@@ -59,6 +59,7 @@ fonts-dejavu-core \
 wget \
 ca-certificates \
 procps \
+rsync \
 && docker-php-ext-install mysqli \
 && docker-php-ext-enable mysqli \
 && apt-get autoremove --purge -yqq \
