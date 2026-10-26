@@ -57,12 +57,11 @@ if (!isset($_SESSION)) {
                 mysqli_query($conn, "DELETE FROM `sessions` WHERE `device_key`= '$deviceKey'");
                 $row = mysqli_fetch_assoc($result);
                 $presentedToken = (string)$_COOKIE['token'];
-                $actualToken = md5($row['token']);
                 $uid = (int)$row['uid'];
+                $usersRow = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM `users` WHERE `uid`= '$uid'"));
 
-                // Good token presented
-                if ($presentedToken === $actualToken) {
-                    $usersRow = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM `users` WHERE `uid`= '$uid'"));
+                // Good token presented (the database holds sha1 of the token) for a user that still exists
+                if ($usersRow && hash_equals((string)$row['token'], sha1($presentedToken))) {
                     $username = (string)$usersRow['username'];
 
                     // Let's remember the user is logged in
@@ -85,7 +84,7 @@ if (!isset($_SESSION)) {
                     $_SESSION = array();
                     session_regenerate_id(true);
                     syslog(LOG_ERR,
-                        "(SYSTEM)[ERROR]: Invalid Cookie Presented for UID $uid: $deviceKey - $presentedToken");
+                        "(SYSTEM)[ERROR]: Invalid remember-me cookie presented for UID $uid");
                 }
             }
         }

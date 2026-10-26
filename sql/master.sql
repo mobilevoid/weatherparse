@@ -166,7 +166,8 @@ CREATE TABLE `outage_alert`
 CREATE TABLE `password_recover`
 (
     `uid`  smallint(5) UNSIGNED      NOT NULL,
-    `hash` char(32) COLLATE utf8_bin NOT NULL
+    `hash` char(32) COLLATE utf8_bin NOT NULL,
+    `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   COLLATE = utf8_bin;

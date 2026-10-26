@@ -59,6 +59,10 @@ if (isset($_GET['do'])) {
     // Check for changes and for existing user with that username or email
     $oldInfo = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT `username`, `email`, `admin` FROM `users` WHERE `uid` = '$user'"));
+    // Only an admin may change the admin flag (a user editing themselves could post admin=1)
+    if ($_SESSION['admin'] !== true) {
+        $admin = (string)$oldInfo['admin'];
+    }
     if (($username === $oldInfo['username']) && ($email === $oldInfo['email']) && ($admin === $oldInfo['admin'])) {
         // Log it
         syslog(LOG_ERR, "(SYSTEM){USER}[ERROR]: Editing user failed, nothing changed");

@@ -32,23 +32,27 @@
  */
 
 // Generate the device key and token for this session
-$deviceKey = (string)substr(str_shuffle(str_repeat('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    mt_rand(1, 10))), 0,
-    40);
-$token = (string)substr(str_shuffle(str_repeat('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    mt_rand(1, 10))),
-    0, 40);
-$tokenHash = md5($token);
-$userAgent = (string)$_SERVER['HTTP_USER_AGENT'];
+// Cryptographically random; the browser keeps the token, the database only its hash
+$deviceKey = bin2hex(random_bytes(20));
+$token = bin2hex(random_bytes(20));
+$tokenHash = sha1($token);
+$userAgent = mysqli_real_escape_string($conn, substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255));
 
 // Save the session to the database
 $result = mysqli_query($conn,
-    "INSERT INTO `sessions` (`uid`, `device_key`, `token`, `user_agent`) VALUES ('$uid', '$deviceKey', '$token', '$userAgent')");
+    "INSERT INTO `sessions` (`uid`, `device_key`, `token`, `user_agent`) VALUES ('$uid', '$deviceKey', '$tokenHash', '$userAgent')");
 if (!$result) {
     // Log it
     syslog(LOG_ERR, "(SYSTEM){USER}[ERROR]: Saving session failed! Raw = " . mysqli_error($conn));
 }
 
 // Send the session cookie
-setcookie('device', $deviceKey, time() + 60 * 60 * 24 * 30, '/');
-setcookie('token', $tokenHash, time() + 60 * 60 * 24 * 30, '/');
+$cookieOptions = [
+    'expires' => time() + 60 * 60 * 24 * 30,
+    'path' => '/',
+    'httponly' => true,
+    'samesite' => 'Lax',
+    'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+];
+setcookie('device', $deviceKey, $cookieOptions);
+setcookie('token', $token, $cookieOptions);

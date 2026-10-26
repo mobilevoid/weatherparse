@@ -45,6 +45,8 @@ switch ($config->version->app) {
         }
         // Windy retired API v1; v2 needs the station ID plus the station password (stored in windy->key)
         @$config->upload->windy->url = 'https://stations.windy.com/api/v2/observation/update';
+        // Password reset links expire after an hour
+        mysqli_query($conn, "ALTER TABLE `password_recover` ADD COLUMN IF NOT EXISTS `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP");
         // New settings
         @$config->station->spike_filter = true;
         @$config->station->spike_max_change = 10;

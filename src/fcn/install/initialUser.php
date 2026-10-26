@@ -34,8 +34,8 @@ $sql = "SHOW TABLES FROM `" . mysqli_real_escape_string($conn, $config->mysql->d
 $result = mysqli_query($conn, $sql);
 
 if (!$result) {
-    echo "DB Error, could not list tables\n";
-    echo 'MySQL Error: ' . mysqli_error($conn);
+    syslog(LOG_ERR, "(SYSTEM){INSTALLER}[ERROR]: Could not list tables: " . mysqli_error($conn));
+    echo "Database error, could not list tables. See the system log.\n";
     exit;
 } else {
     // Check to ensure there are no other accounts

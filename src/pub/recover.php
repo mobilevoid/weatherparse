@@ -36,6 +36,9 @@ require(dirname(__DIR__) . '/inc/loader.php');
 
 if (!isset($_SESSION['authenticated'])) {
 
+    // Reset links are valid for one hour
+    mysqli_query($conn, "DELETE FROM `password_recover` WHERE `created` < NOW() - INTERVAL 1 HOUR");
+
     require(APP_BASE_PATH . '/fcn/mailer.php');
 
 // Get Header
@@ -49,7 +52,7 @@ if (!isset($_SESSION['authenticated'])) {
         if ($config->google->recaptcha->enabled === true) {
             // Check that Google captcha is correct
             $captcha = $_POST['g-recaptcha-response'];
-            $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . $config->google->recaptcha->secret . "&response=" . $captcha),
+            $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . urlencode((string)$config->google->recaptcha->secret) . "&response=" . urlencode((string)$captcha)),
                 true);
         } // Recaptcha not enabled, set response to true by default
         else {
@@ -91,8 +94,8 @@ if (!isset($_SESSION['authenticated'])) {
                     echo '<div class="row"><div class="col"><div class="alert alert-success text-center"><strong>Success:</strong> If that email exists in our database, you will receive an email with instructions to reset your password.</div></div></div>';
                 } //Otherwise
                 else {
-                    $uuid = uniqid();
-                    $hash = md5($uuid);
+                    // Random, not derived from the clock (md5(uniqid()) could be guessed)
+                    $hash = bin2hex(random_bytes(16));
                     mysqli_query($conn, "INSERT INTO `password_recover` (`uid`, `hash`) VALUES ('$uid', '$hash')");
 
                     // If the insert Query was successful.
@@ -183,12 +186,11 @@ if (!isset($_SESSION['authenticated'])) {
         $username = $userRow['username'];
 
         // Get requested password
-        $password = password_hash(mysqli_real_escape_string($conn,
-            filter_input(INPUT_POST, 'pass', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])), PASSWORD_DEFAULT);
+        // Hash the password exactly as typed, like sign-in does (escaping it first changed passwords with ' or \)
+        $password = password_hash((string)filter_input(INPUT_POST, 'pass', FILTER_UNSAFE_RAW), PASSWORD_DEFAULT);
 
         // Check and see if the password actually changed
-        if (password_verify(mysqli_real_escape_string($conn,
-            filter_input(INPUT_POST, 'pass', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])), $userRow['password'])) {
+        if (password_verify((string)filter_input(INPUT_POST, 'pass', FILTER_UNSAFE_RAW), $userRow['password'])) {
             mysqli_query($conn, "DELETE FROM `password_recover` WHERE `uid` = '$uid'");
             // Log it
             syslog(LOG_ERR, "(SYSTEM){USER}: Password recovery for UID $uid failed");
@@ -197,6 +199,8 @@ if (!isset($_SESSION['authenticated'])) {
 
         } else {
             mysqli_query($conn, "UPDATE `users` SET `password`='$password' WHERE `uid`='$uid'");
+            // A reset ends every saved sign-in ("remember me") of that user
+            mysqli_query($conn, "DELETE FROM `sessions` WHERE `uid`='$uid'");
 
             // If the insert Query was successful.
             if (mysqli_affected_rows($conn) === 1) {

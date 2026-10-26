@@ -41,6 +41,7 @@ if ($user === $_SESSION['uid']) {
     $_SESSION['messages'] = '<div class="alert alert-danger alert-dismissible"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>Cannot delete your own account!</div>';
 } else {
     $result = mysqli_query($conn, "DELETE FROM `users` WHERE `uid` = '$user'");
+    mysqli_query($conn, "DELETE FROM `sessions` WHERE `uid` = '$user'"); // and their saved sign-ins
     // If the insert Query was successful.
     if (mysqli_affected_rows($conn) === 1) {
         // Log it

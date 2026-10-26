@@ -44,9 +44,7 @@ if ($_SESSION['admin'] !== true) {
         exit();
     }
 }
-$token = (string)substr(str_shuffle(str_repeat('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    mt_rand(1, 10))),
-    0, 39);
+$token = bin2hex(random_bytes(19)) . bin2hex(random_bytes(1))[0]; // 39 random hex characters, as before
 
 // Process Update
 mysqli_query($conn, "UPDATE `users` SET `token` = '$token' WHERE `uid` = '$user'");

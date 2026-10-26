@@ -32,10 +32,11 @@
  */
 
 if (isset($_GET['arrange'])) {
-    $arrange = $_POST['arrange'];
+    $arrange = is_array($_POST['arrange'] ?? null) ? array_values($_POST['arrange']) : [];
     for ($i = 0; $i < count($arrange); $i++) {
+        $sensor = mysqli_real_escape_string($conn, (string)$arrange[$i]);
         mysqli_query($conn,
-            "UPDATE `towers` SET `arrange`= '$i' WHERE `sensor`= '$arrange[$i]'");
+            "UPDATE `towers` SET `arrange`= '$i' WHERE `sensor`= '$sensor'");
     }
     exit();
 } ?>

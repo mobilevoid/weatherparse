@@ -53,13 +53,8 @@ if (isset($_GET['end'])) {
     $endDate = date('Y-m-d H:i:s', strtotime('now'));
 }
 
-if (isset($_GET['sort'])) {
-    $sort = mysqli_real_escape_string($conn,
-        strtoupper(filter_input(INPUT_GET, 'sort', FILTER_CALLBACK, ['options' => 'legacySanitizeString'])));
-    $sort = ' ORDER BY `reported` ' . $sort;
-} else {
-    $sort = ' ORDER BY `reported` ASC';
-}
+// Only ASC or DESC (anything else was pasted into ORDER BY: SQL injection)
+$sort = (strtoupper((string)($_GET['sort'] ?? '')) === 'DESC') ? ' ORDER BY `reported` DESC' : ' ORDER BY `reported` ASC';
 
 // Access Token
 include(APP_BASE_PATH . '/fcn/api/auth/getToken.php');

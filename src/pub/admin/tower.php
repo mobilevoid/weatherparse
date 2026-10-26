@@ -40,7 +40,7 @@ if ((isset($_SESSION['authenticated'])) && ($_SESSION['admin'] === true)) {
     // Tower Sensors
 
     // Add Tower
-    if ((isset($_GET['add'])) && ($config->station->towers = true)) {
+    if ((isset($_GET['add'])) && ($config->station->towers === true)) {
 
         require(APP_BASE_PATH . '/fcn/towers/add.php');
 
@@ -50,7 +50,7 @@ if ((isset($_SESSION['authenticated'])) && ($_SESSION['admin'] === true)) {
         require(APP_BASE_PATH . '/fcn/towers/delete.php');
 
     } // View/Edit Towers
-    elseif ((isset($_GET['view'])) && ($config->station->towers = true)) {
+    elseif ((isset($_GET['view'])) && ($config->station->towers === true)) {
 
         require(APP_BASE_PATH . '/fcn/towers/view.php');
 

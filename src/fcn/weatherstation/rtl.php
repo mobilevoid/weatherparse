@@ -29,6 +29,9 @@
 // Get the loader
 require(dirname(__DIR__, 2) . '/inc/loader.php');
 
+// Responses are JSON; never let a browser treat them as HTML (reflected XSS through the sensor id)
+header('Content-Type: application/json');
+
 /**
  * @var mysqli $conn Global MYSQL Connection
  * @var object $config Global Config
@@ -102,7 +105,7 @@ if ($data->model === 'Acurite-Atlas') {
 
             } // Message 38
             elseif ($data->message_type === 38) {
-                $windSpeedMPH = mysqli_real_escape_string($conn, $data->wind_avg_mi_h);
+                $windSpeedMPH = (int)mysqli_real_escape_string($conn, $data->wind_avg_mi_h);
 
                 // Wind Direction & check for reversal)
                 if ($config->station->reverse_wind === true) {
@@ -247,8 +250,9 @@ elseif ($data->model === 'Acurite-5n1') {
                 // Wind Speed
                 $windSpeedKMH = (int)mysqli_real_escape_string($conn, $data->wind_avg_km_h);
                 $windSpeedMPH = round($windSpeedKMH * 0.6213712, 1);
-                $tempF = $data->temperature_F;
-                $humidity = $data->humidity;
+                // Numbers only: these went into SQL unchanged (stacked SQL injection)
+                $tempF = (float)$data->temperature_F;
+                $humidity = (int)$data->humidity;
 
                 // Enter readings into DB
                 $sql = "INSERT INTO `windspeed` (`speedMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH' , '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `speedMPH`='$windSpeedMPH', `timestamp`='$timestamp', `device`='$device', `source`='$source';

@@ -131,11 +131,48 @@ if (!isset($_SESSION)) {
     include(APP_BASE_PATH . '/inc/session.php');
 }
 
+/*
+ * Cross-site request protection. A browser sends Origin (form posts) and Referer (links) naming the page a request came
+ * from. Refuse form posts from another site, and admin links that change something (delete, token, do, arrange) unless
+ * they come from a page of this site. The Access/smartHUB uploads and API clients send neither header and are not
+ * affected. Runs once per request (the loader is included by many files).
+ */
+if (PHP_SAPI !== 'cli' && !defined('WEATHERPARSE_ORIGIN_CHECKED')) {
+    define('WEATHERPARSE_ORIGIN_CHECKED', true);
+    $ownHosts = array_filter([
+        strtolower((string)($_SERVER['HTTP_HOST'] ?? '')),
+        strtolower((string)($_SERVER['HTTP_X_FORWARDED_HOST'] ?? '')),
+    ]);
+    $fromHost = function (string $url): string {
+        $p = parse_url($url);
+        return isset($p['host']) ? strtolower($p['host'] . (isset($p['port']) ? ':' . $p['port'] : '')) : '';
+    };
+    $origin = (string)($_SERVER['HTTP_ORIGIN'] ?? '');
+    $referer = (string)($_SERVER['HTTP_REFERER'] ?? '');
+    $path = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH);
+    $isUpload = str_starts_with($path, '/weatherstation');
+    $isPost = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST';
+    $isAdminChange = str_starts_with($path, '/admin') && array_intersect(array_keys($_GET), ['delete', 'token', 'do', 'arrange']);
+
+    $refused = false;
+    if (!$isUpload && $isPost && ($origin !== '' || $referer !== '')) {
+        $from = $origin !== '' && $origin !== 'null' ? $fromHost($origin) : $fromHost($referer);
+        $refused = !in_array($from, $ownHosts, true);
+    } elseif (!$isUpload && !$isPost && $isAdminChange) {
+        $refused = $referer === '' || !in_array($fromHost($referer), $ownHosts, true);
+    }
+    if ($refused) {
+        syslog(LOG_WARNING, "(SYSTEM)[SECURITY]: Refused cross-site request to $path");
+        header(($_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1') . ' 403 Forbidden');
+        exit('Request refused: it did not come from this site.');
+    }
+}
+
 // Output buffering
 if (!isset($obStart)) {
     $obStart = ob_start();
     header('Cache-Control: no-cache');
-    header('Content-Type-Options: nosniff');
+    header('X-Content-Type-Options: nosniff');
     header_remove('Pragma');
     header_remove('Expires');
 }

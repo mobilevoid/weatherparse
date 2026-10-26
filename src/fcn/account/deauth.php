@@ -32,7 +32,7 @@
 
 if (isset($_COOKIE['device'])) {
     $username = $_SESSION['username'];
-    $deviceKey = (string)$_COOKIE['device'];
+    $deviceKey = mysqli_real_escape_string($conn, (string)$_COOKIE['device']);
     mysqli_query($conn, "DELETE FROM `sessions` WHERE `device_key` = '$deviceKey'");
     unset($_COOKIE['device']);
     unset($_COOKIE['token']);

@@ -72,6 +72,14 @@ function mailer($sendTo, $subject, $message, $replyTo = false, $replyToName = fa
      * @var object $config Global Config
      */
 
+    // Header values must not contain line breaks (a CR/LF in the contact form name could add Bcc: headers)
+    $noBreaks = fn($v) => is_string($v) ? str_replace(["", "
+"], ' ', $v) : $v;
+    $sendTo = $noBreaks($sendTo);
+    $subject = $noBreaks($subject);
+    $replyTo = $noBreaks($replyTo);
+    $replyToName = $noBreaks($replyToName);
+
     if ($config->mailgun->enabled === false) {
         $headers = 'MIME-Version: 1.0' . PHP_EOL;
         $headers .= 'Content-type: text/html; charset=iso-8859-1' . PHP_EOL;

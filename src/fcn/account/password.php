@@ -63,6 +63,8 @@ if (isset($_GET['do'])) {
     }
     // Process Update
     mysqli_query($conn, "UPDATE `users` SET `password` = '$password' WHERE `uid` = '$user'");
+    // A new password ends every saved sign-in ("remember me") of that user
+    mysqli_query($conn, "DELETE FROM `sessions` WHERE `uid` = '$user'");
 
     // If the insert Query was successful.
 

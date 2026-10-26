@@ -35,7 +35,7 @@
 if ($config->google->recaptcha->enabled === true) {
     // Check that Google captcha is correct
     $captcha = $_POST['g-recaptcha-response'];
-    $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . $config->google->recaptcha->secret . "&response=" . $captcha),
+    $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . urlencode((string)$config->google->recaptcha->secret) . "&response=" . urlencode((string)$captcha)),
         true);
 } // Recaptcha not enabled, set response to true by default
 else {
@@ -54,6 +54,8 @@ if ($response['success'] === true) {
 
         // Check the password
         if (password_verify(filter_input(INPUT_POST, 'password', FILTER_UNSAFE_RAW), $row['password'])) {
+            // New session id at sign-in, so a session id planted before login is worthless
+            session_regenerate_id(true);
             // Let's remember the user is logged in
             $_SESSION['authenticated'] = true;
             $_SESSION['username'] = (string)$row['username'];

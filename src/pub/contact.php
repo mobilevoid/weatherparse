@@ -34,13 +34,13 @@ require(dirname(__DIR__) . '/inc/loader.php');
  * @var object $config Global Config
  */
 
-if (isset($_GET['do'])) {
+if (isset($_GET['do']) && $config->contact->enabled === true) {
 
     // Check for Google recaptcha
     if ($config->google->recaptcha->enabled === true && !isset($_SESSION['authenticated'])) {
         // Check that Google captcha is correct
         $captcha = $_POST['g-recaptcha-response'];
-        $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . $config->google->recaptcha->secret . "&response=" . $captcha),
+        $response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . urlencode((string)$config->google->recaptcha->secret) . "&response=" . urlencode((string)$captcha)),
             true);
     } // Recaptcha not enabled, set response to true by default
     else {
