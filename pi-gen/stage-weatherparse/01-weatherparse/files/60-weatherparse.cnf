@@ -1,0 +1,3 @@
+# WeatherParse: database trimming runs as MariaDB events
+[mariadbd]
+event_scheduler = ON

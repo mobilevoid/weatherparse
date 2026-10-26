@@ -1,0 +1,16 @@
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A FORWARD -s 192.168.6.0/24 -i end0 -o wlan0 -m conntrack --ctstate NEW -j ACCEPT
+-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+COMMIT
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A PREROUTING -s 192.168.6.0/24 -i end0 -p tcp -m tcp --dport 53 -j DNAT --to-destination 192.168.6.1:53
+-A PREROUTING -s 192.168.6.0/24 -i end0 -p udp -m udp --dport 53 -j DNAT --to-destination 192.168.6.1:53
+-A POSTROUTING -o wlan0 -j MASQUERADE
+COMMIT

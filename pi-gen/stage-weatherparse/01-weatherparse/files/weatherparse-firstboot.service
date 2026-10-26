@@ -1,0 +1,13 @@
+[Unit]
+Description=WeatherParse first boot (certificate, database, installer settings)
+After=mariadb.service apache2.service network-online.target
+Wants=network-online.target
+ConditionPathExists=!/var/lib/weatherparse/firstboot.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/weatherparse-firstboot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

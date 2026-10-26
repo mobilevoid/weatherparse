@@ -1,0 +1,58 @@
+name: sd-image
+
+# Builds a ready-to-flash Raspberry Pi OS Lite (Debian 13, 64-bit) image with WeatherParse preinstalled,
+# using the official pi-gen builder. Flash it with Raspberry Pi Imager (set Wi-Fi, user and time zone there),
+# boot, then open http://<pi address>/ to finish setup in the web installer.
+# Builds on release tags and on demand; a build takes about an hour.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Put this WeatherParse version into the image stage
+        run: |
+          set -e
+          DEST=pi-gen/stage-weatherparse/01-weatherparse/files/weatherparse
+          mkdir -p "$DEST"
+          git archive HEAD | tar -x -C "$DEST"
+          rm -rf "$DEST/pi-gen" "$DEST/.github"
+          chmod +x pi-gen/stage-weatherparse/prerun.sh pi-gen/stage-weatherparse/01-weatherparse/*.sh
+          ls "$DEST"
+
+      - id: build
+        uses: usimd/pi-gen-action@v1
+        with:
+          image-name: weatherparse-${{ github.ref_name }}
+          stage-list: stage0 stage1 stage2 ./pi-gen/stage-weatherparse
+          release: trixie
+          pi-gen-version: arm64
+          hostname: weatherparse
+          locale: en_US.UTF-8
+          keyboard-keymap: us
+          keyboard-layout: English (US)
+          timezone: Etc/UTC
+          enable-ssh: 1
+          compression: xz
+          increase-runner-disk-size: true
+          verbose-output: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weatherparse-sd-image
+          path: ${{ steps.build.outputs.image-path }}
+          retention-days: 14
+
+      - name: Attach to the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.build.outputs.image-path }}

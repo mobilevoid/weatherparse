@@ -1,0 +1,44 @@
+#!/bin/bash
+# Wi-Fi watchdog (2026-10-25). Run every minute by wifi-watchdog.timer.
+# If the router cannot be reached: after 3 failed minutes reconnect wlan0; after 10 failed minutes reboot,
+# but never more than one watchdog reboot per hour (so a router outage cannot cause a reboot loop).
+# The router: the default gateway on the Wi-Fi interface (none at all also counts as a failure)
+GW=${WATCHDOG_TEST_GW:-$(ip -4 route show default 2>/dev/null | awk '/default/{print $3; exit}')}
+GW=${GW:-0.0.0.0}
+# Test mode: WATCHDOG_TEST_GW=<unreachable ip> wifi-watchdog  (logs actions, changes nothing)
+TEST=${WATCHDOG_TEST_GW:+1}
+STATE=/run/wifi-watchdog.fails${TEST:+.test}
+LAST_REBOOT=/var/lib/wifi-watchdog.last-reboot${TEST:+.test}
+
+
+if ping -c2 -W3 "$GW" >/dev/null 2>&1; then
+  [ -s "$STATE" ] && logger -t wifi-watchdog${TEST:+-TEST} "router reachable again after $(cat "$STATE") failed checks"
+  rm -f "$STATE"
+  exit 0
+fi
+
+FAILS=$(( $(cat "$STATE" 2>/dev/null || echo 0) + 1 ))
+echo "$FAILS" > "$STATE"
+logger -t wifi-watchdog${TEST:+-TEST} "router $GW not reachable (failed check $FAILS)"
+
+if [ "$FAILS" -eq 3 ] || [ "$FAILS" -eq 6 ]; then
+  logger -t wifi-watchdog${TEST:+-TEST} "reconnecting wlan0"
+  [ -n "$TEST" ] && { echo "TEST: would reconnect wlan0"; exit 0; }
+  /usr/sbin/iw dev wlan0 set power_save off 2>/dev/null
+  nmcli device disconnect wlan0 >/dev/null 2>&1
+  sleep 3
+  nmcli device connect wlan0 >/dev/null 2>&1
+fi
+
+if [ "$FAILS" -ge 10 ]; then
+  NOW=$(date +%s); LAST=$(cat "$LAST_REBOOT" 2>/dev/null || echo 0)
+  if [ $(( NOW - LAST )) -ge 3600 ]; then
+    echo "$NOW" > "$LAST_REBOOT"
+    logger -t wifi-watchdog${TEST:+-TEST} "Wi-Fi down for $FAILS minutes, rebooting"
+    [ -n "$TEST" ] && { echo "TEST: would reboot"; exit 0; }
+    sync
+    systemctl reboot
+  else
+    logger -t wifi-watchdog${TEST:+-TEST} "Wi-Fi still down; already rebooted within the last hour, waiting"
+  fi
+fi

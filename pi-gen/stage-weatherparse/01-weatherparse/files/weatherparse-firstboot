@@ -1,0 +1,45 @@
+#!/bin/bash
+# WeatherParse first boot: per-device secrets that must not be shared by every copy of the image.
+#  - a new HTTPS certificate (the Access connects over HTTPS)
+#  - the database and a random database password
+#  - the web installer gets the database settings pre-filled (Apache SetEnv, read by the installer)
+# Runs once; leaves /var/lib/weatherparse/firstboot.done behind.
+set -euo pipefail
+DONE=/var/lib/weatherparse/firstboot.done
+[ -f "$DONE" ] && exit 0
+mkdir -p /var/lib/weatherparse
+
+log() { logger -t weatherparse-firstboot "$*"; echo "$*"; }
+
+# 1. Unique certificate for this Pi
+make-ssl-cert generate-default-snakeoil --force-overwrite
+log "new HTTPS certificate generated"
+
+# 2. Database and user with a random password
+systemctl start mariadb
+PASS=$(openssl rand -hex 16)
+mariadb <<SQL
+CREATE DATABASE IF NOT EXISTS weatherparse CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE USER IF NOT EXISTS 'weatherparse'@'localhost' IDENTIFIED BY '${PASS}';
+ALTER USER 'weatherparse'@'localhost' IDENTIFIED BY '${PASS}';
+GRANT ALL PRIVILEGES ON weatherparse.* TO 'weatherparse'@'localhost';
+GRANT EVENT, RELOAD, SUPER ON *.* TO 'weatherparse'@'localhost';  -- trimming runs SET GLOBAL event_scheduler
+FLUSH PRIVILEGES;
+SQL
+log "database weatherparse and user created"
+
+# 3. Pre-fill the web installer (only readable by root and the web server)
+umask 027
+cat >/etc/apache2/conf-available/weatherparse-installer.conf <<CONF
+# Written by weatherparse-firstboot. The web installer reads these to pre-fill the database form.
+SetEnv MYSQL_HOSTNAME localhost
+SetEnv MYSQL_DATABASE weatherparse
+SetEnv MYSQL_USER weatherparse
+SetEnv MYSQL_PASSWORD ${PASS}
+CONF
+chgrp www-data /etc/apache2/conf-available/weatherparse-installer.conf
+a2enconf -q weatherparse-installer
+systemctl reload apache2 || systemctl restart apache2
+log "web installer ready: open http://$(hostname -I | awk '{print $1}')/ to finish setup"
+
+touch "$DONE"
