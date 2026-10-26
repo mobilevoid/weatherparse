@@ -69,22 +69,31 @@ dnsmasq for the Access
 
 During the iptables-persistent install you can answer No to saving the current rules.
 
-Create /etc/dnsmasq.conf (keep a copy of the original first):
+Create /etc/dnsmasq.conf (keep a copy of the original first). It is also in config/dnsmasq-hub.conf.example.
 
-    no-resolv
-    server=<your router IP>
+    # Serve only the Access port; the Pi itself keeps using your normal DNS
     interface=end0
+    except-interface=lo
+    bind-interfaces
     no-dhcp-interface=wlan0
     dhcp-range=end0,192.168.6.50,192.168.6.100,255.255.255.0,24h
+    # The Access gets the redirect; everything else goes to public DNS
+    no-hosts
+    no-resolv
+    server=8.8.8.8
+    server=1.1.1.1
+    address=/atlasapi.myacurite.com/192.168.6.1
 
-Point the AcuRite host at the Pi
---------------------------------
+This is two resolvers: dnsmasq answers only the Access and points the AcuRite upload host at the Pi's address on
+the Ethernet port (192.168.6.1). The Pi itself keeps using your router's DNS over Wi-Fi, so it sees AcuRite's real
+address and can forward readings to MyAcuRite. Do not add atlasapi.myacurite.com to /etc/hosts.
 
-Add to /etc/hosts, using the Pi's home network address:
+Stop dnsmasq from becoming the Pi's own resolver:
 
-    <your Pi IP>   atlasapi.myacurite.com
+    echo 'DNSMASQ_EXCEPT="lo"' | sudo tee -a /etc/default/dnsmasq
+    sudo resolvconf -u
 
-(For a smartHUB use hubapi.myacurite.com instead. AcuRite's smartHUB service no longer exists, so smartHUB readings
+(For a smartHUB the host is hubapi.myacurite.com. AcuRite's smartHUB service no longer exists, so smartHUB readings
 are stored but not forwarded to MyAcuRite.)
 
 Routing and the DNS Redirect

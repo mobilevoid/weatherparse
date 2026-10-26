@@ -185,16 +185,27 @@ system shows (ip -br link).
 - Give the Ethernet port a fixed address, for example 192.168.6.1/24 (in NetworkManager: a manual IPv4 address with
   never-default set, so it is not used for internet).
 
-- dnsmasq (/etc/dnsmasq.conf), DHCP only on the Access port:
+- Two resolvers. dnsmasq answers only the Access, on the Ethernet port, and points the AcuRite upload host at the
+  Pi's address on that port. The Pi itself keeps using your router's DNS over Wi-Fi, so it still sees AcuRite's real
+  address (needed to forward readings to MyAcuRite). Do not put atlasapi.myacurite.com in /etc/hosts.
+  /etc/dnsmasq.conf (also in config/dnsmasq-hub.conf.example):
 
+      # Serve only the Access port; the Pi itself keeps using your normal DNS
       interface=end0
+      except-interface=lo
+      bind-interfaces
+      no-dhcp-interface=wlan0
       dhcp-range=end0,192.168.6.50,192.168.6.100,255.255.255.0,24h
+      # The Access gets the redirect; everything else goes to public DNS
+      no-hosts
       no-resolv
-      server=<your router IP>
+      server=8.8.8.8
+      server=1.1.1.1
+      address=/atlasapi.myacurite.com/192.168.6.1
 
-- /etc/hosts: point the AcuRite host at the Pi's own LAN address:
-
-      <your Pi IP> atlasapi.myacurite.com
+  Stop dnsmasq from becoming the Pi's own resolver: add DNSMASQ_EXCEPT="lo" to /etc/default/dnsmasq, then
+  systemctl restart dnsmasq and resolvconf -u. Check: getent hosts atlasapi.myacurite.com on the Pi shows AcuRite's
+  public addresses, and dig +short @192.168.6.1 atlasapi.myacurite.com shows 192.168.6.1.
 
 - Current Access firmware ignores the DNS server handed out by DHCP and asks 8.8.4.4 directly. Redirect the Access
   subnet's DNS to the Pi's dnsmasq, share the Pi's internet with the Access, and save the rules:
