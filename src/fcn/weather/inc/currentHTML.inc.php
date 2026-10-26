@@ -47,6 +47,23 @@ if ($systemStatus['status'] === '0') {
         </div>
     </section>
     <?php
+} else {
+    // Time of the reading shown (the clock above is the current time)
+    $lastReading = mysqli_fetch_assoc(mysqli_query($conn, "SELECT `timestamp` FROM `last_update`"));
+    if ($lastReading && !empty($lastReading['timestamp'])) {
+        $readingTime = strtotime($lastReading['timestamp']);
+        $minutesAgo = max(0, (int)floor((time() - $readingTime) / 60));
+        $agoText = $minutesAgo === 0 ? 'just now' : ($minutesAgo === 1 ? '1 minute ago' : "$minutesAgo minutes ago");
+        ?>
+        <!-- Reading time -->
+        <section id="reading-time" class="row live-weather-reading-time">
+            <div class="col-auto mx-auto">
+                <p class="small text-muted mb-1">Reading from <?= date($config->site->dashboard_display_time, $readingTime); ?>
+                    (<?= $agoText; ?>)</p>
+            </div>
+        </section>
+        <?php
+    }
 }
 
 // Load weather Data

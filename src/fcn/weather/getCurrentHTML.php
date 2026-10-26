@@ -35,7 +35,7 @@ function getCurrentHTML()
 
     // If tower sensors are active show the tower data
     if ($config->station->towers === true) {
-        echo '<hr class="hr-dotted>"';
+        echo '<hr class="hr-dotted">';
         require(APP_BASE_PATH . '/fcn/weather/inc/currentTowerHTML.inc.php');
     }
 }
