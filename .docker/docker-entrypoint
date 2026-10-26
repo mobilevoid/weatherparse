@@ -50,7 +50,7 @@ if [ "$1" = 'weatherparse' ]; then
       certbot -n --authenticator standalone --installer apache --agree-tos --"${LE_REDIRECT}" --email "${LE_EMAIL}" "${LE_SECURE_DOMAINS[@]}"
     fi
 
-    service apache2 stop
+    apache2ctl stop
   }
 
   function _set_system_timezone() {
@@ -71,25 +71,23 @@ if [ "$1" = 'weatherparse' ]; then
   }
 
   function _start_system_services() {
+    # Debian 13 dropped the SysV init scripts for rsyslog (and a container has no systemd), so start the daemons
+    # directly and check them by process.
     echo "Starting syslog ..."
-    service rsyslog start
+    rsyslogd
 
     echo "Starting cron ..."
-    service cron start
+    cron
 
     echo "Starting apache2 ..."
     apache2ctl start
 
     echo "Checking Services after startup ..."
-
-    echo "Checking syslog ..."
-    service rsyslog status || exit 1
-
-    echo "Checking cron ..."
-    service cron status || exit 1
-
-    echo "Checking Apache2 ..."
-    service apache2 status || exit 1
+    sleep 1
+    for daemon in rsyslogd cron apache2; do
+      echo "Checking $daemon ..."
+      pgrep -x "$daemon" >/dev/null || { echo "ERROR: $daemon is not running"; exit 1; }
+    done
   }
 
   function _check_default_config() {
