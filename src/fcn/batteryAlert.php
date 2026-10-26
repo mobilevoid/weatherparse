@@ -414,7 +414,8 @@ function batteryAlertSend(mysqli $conn, object $settings, string $subject, strin
         if ($result === true || (is_array($result) && !empty($result['id']))) {
             $sent++;
         } else {
-            syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Sending \"$subject\" to $to failed");
+            // No address in the log; the MAILER line has the reason (and the address with debug logging on)
+            syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Sending \"$subject\" to a recipient failed");
         }
     }
     return $sent > 0;

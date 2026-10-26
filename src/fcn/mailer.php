@@ -34,10 +34,11 @@
  * @param $siteEmail
  * @param $mgDomain
  * @param $mgSecret
+ * @param bool $debug Log the recipient and subject of a rejected message (debug logging)
  * @return array Mailgun's reply ('id' and 'message' when queued); on failure 'message' explains it and 'http' is the status
  */
 
-function sendViaMailgun($sendTo, $subject, $message, $siteName, $siteEmail, $mgDomain, $mgSecret): array
+function sendViaMailgun($sendTo, $subject, $message, $siteName, $siteEmail, $mgDomain, $mgSecret, bool $debug = false): array
 {
     $array_data = array(
         'from' => $siteName . ' <' . $siteEmail . '>',
@@ -70,8 +71,12 @@ function sendViaMailgun($sendTo, $subject, $message, $siteName, $siteEmail, $mgD
         $reply['http'] = $httpCode;
     }
     if (empty($reply['id'])) {
-        syslog(LOG_ERR, "(SYSTEM){MAILER}[ERROR]: Mailgun did not accept \"$subject\" for $sendTo (HTTP " .
-            $reply['http'] . ': ' . ($reply['message'] ?? 'no reply') . ')');
+        // Recipient and subject (which may hold personal details) only go to the log with debug logging on
+        $reason = preg_replace('/[^\x20-\x7E]/', ' ', substr((string)($reply['message'] ?? 'no reply'), 0, 80));
+        syslog(LOG_ERR, "(SYSTEM){MAILER}[ERROR]: Mailgun did not accept a message (HTTP " . $reply['http'] . ": $reason)");
+        if ($debug === true) {
+            syslog(LOG_DEBUG, "(SYSTEM){MAILER}: Rejected message was \"$subject\" for $sendTo");
+        }
     }
     return $reply;
 }
@@ -120,7 +125,7 @@ function mailer($sendTo, $subject, $message, $replyTo = false, $replyToName = fa
     // Send
     return ($config->mailgun->enabled === true) ?
         sendViaMailgun($sendTo, $subject, $message, $config->site->name, $config->site->email, $config->mailgun->domain,
-            $config->mailgun->secret)
+            $config->mailgun->secret, $config->debug->logging === true)
         :
         mail($sendTo, $subject, $message, $headers, '-f' . $config->site->email);
 }
