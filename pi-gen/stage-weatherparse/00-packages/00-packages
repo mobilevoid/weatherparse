@@ -21,3 +21,6 @@ ca-certificates
 ssl-cert
 cron
 rsyslog
+rsync
+nfs-common
+cifs-utils
