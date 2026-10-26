@@ -34,7 +34,7 @@
  * @param $siteEmail
  * @param $mgDomain
  * @param $mgSecret
- * @return bool|mixed
+ * @return array Mailgun's reply ('id' and 'message' when queued); on failure 'message' explains it and 'http' is the status
  */
 
 function sendViaMailgun($sendTo, $subject, $message, $siteName, $siteEmail, $mgDomain, $mgSecret): array
@@ -54,11 +54,26 @@ function sendViaMailgun($sendTo, $subject, $message, $siteName, $siteEmail, $mgD
     curl_setopt($session, CURLOPT_HEADER, false);
     curl_setopt($session, CURLOPT_ENCODING, 'UTF-8');
     curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($session, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($session, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($session, CURLOPT_TIMEOUT, 30);
     $response = curl_exec($session);
+    $httpCode = (int)curl_getinfo($session, CURLINFO_RESPONSE_CODE);
+    $curlError = curl_error($session);
     curl_close($session);
 
-    return json_decode($response, true);
+    // Mailgun answers JSON on success and on most errors, but plain text (e.g. "Forbidden") for some
+    if ($response === false) {
+        $reply = ['message' => 'Connection to Mailgun failed: ' . $curlError, 'http' => 0];
+    } else {
+        $decoded = json_decode($response, true);
+        $reply = is_array($decoded) ? $decoded : ['message' => trim(substr(strip_tags($response), 0, 200))];
+        $reply['http'] = $httpCode;
+    }
+    if (empty($reply['id'])) {
+        syslog(LOG_ERR, "(SYSTEM){MAILER}[ERROR]: Mailgun did not accept \"$subject\" for $sendTo (HTTP " .
+            $reply['http'] . ': ' . ($reply['message'] ?? 'no reply') . ')');
+    }
+    return $reply;
 }
 
 function mailer($sendTo, $subject, $message, $replyTo = false, $replyToName = false, $disclaimer = true)

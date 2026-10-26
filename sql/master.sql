@@ -97,7 +97,8 @@ CREATE TABLE `battery_alert`
     `name`      varchar(255) COLLATE utf8_bin NOT NULL,
     `low_since` datetime                      NOT NULL,
     `last_seen` datetime                      NOT NULL,
-    `last_sent` datetime                               DEFAULT NULL
+    `last_sent` datetime                               DEFAULT NULL,
+    `last_attempt` datetime                            DEFAULT NULL
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   COLLATE = utf8_bin;

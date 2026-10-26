@@ -37,6 +37,11 @@ if (!defined('BATTERY_ALERT_FORGET_AFTER')) {
     define('BATTERY_ALERT_FORGET_AFTER', '30 days');
 }
 
+// After a failed send, wait this long before trying again (keeps a broken mail setup from retrying every minute)
+if (!defined('BATTERY_ALERT_RETRY_AFTER')) {
+    define('BATTERY_ALERT_RETRY_AFTER', '1 hour');
+}
+
 // Longest reminder interval the settings page accepts (hours, 30 days). 0 means no reminders.
 if (!defined('BATTERY_ALERT_MAX_REMINDER_HOURS')) {
     define('BATTERY_ALERT_MAX_REMINDER_HOURS', 720);
@@ -152,6 +157,7 @@ function batteryAlertTableSQL(): string
     `low_since` datetime                      NOT NULL,
     `last_seen` datetime                      NOT NULL,
     `last_sent` datetime                               DEFAULT NULL,
+    `last_attempt` datetime                            DEFAULT NULL,
     PRIMARY KEY (`device`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8
@@ -167,6 +173,16 @@ function batteryAlertEnsureTable(mysqli $conn): bool
 {
     $result = mysqli_query($conn, "SHOW TABLES LIKE 'battery_alert'");
     if ($result !== false && mysqli_num_rows($result) === 1) {
+        // Tables made by the first 4.1.0 build lack last_attempt
+        $column = mysqli_query($conn, "SHOW COLUMNS FROM `battery_alert` LIKE 'last_attempt'");
+        if ($column !== false && mysqli_num_rows($column) === 0) {
+            if (mysqli_query($conn, "ALTER TABLE `battery_alert` ADD `last_attempt` datetime DEFAULT NULL AFTER `last_sent`") === true) {
+                syslog(LOG_NOTICE, "(SYSTEM){BATTERY}: Added last_attempt to the battery_alert table");
+            } else {
+                syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Adding last_attempt to battery_alert failed (" . mysqli_error($conn) . ")");
+                return false;
+            }
+        }
         return true;
     }
     if (mysqli_query($conn, batteryAlertTableSQL()) === true) {

@@ -23,6 +23,17 @@ Added
   outage alerts), reminder hours (0 = none) and the battery OK email. State is kept in the new battery_alert table.
 - Updater step 4.0.0 -> 4.1.0: adds the battery alert settings (on when Mailgun or a local mail program is set up)
   and creates the battery_alert table. Cron also creates the table if it is missing.
+- Battery alerts wait an hour after a failed send before trying again (new battery_alert.last_attempt column), so a
+  broken mail setup does not retry every minute.
+
+Fixed
+-----
+
+- Mailgun mail no longer crashes the caller when Mailgun answers with plain text (for example "Forbidden" for a
+  sandbox domain's unapproved recipient): the reply is always returned as an array and failures are logged with the
+  HTTP status and Mailgun's message. This also affected outage alerts.
+- Mailgun requests now verify Mailgun's TLS certificate (it was turned off) and time out after 30 seconds.
+- The admin "Send Test Email" button reports failure when Mailgun did not accept the mail (it showed success).
 
 4.0.0 - WeatherParse (unreleased)
 =================================

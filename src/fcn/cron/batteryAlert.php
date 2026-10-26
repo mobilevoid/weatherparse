@@ -42,7 +42,7 @@ if (!batteryAlertEnsureTable($conn)) {
 
     // Saved low states
     $batteryState = array();
-    $result = mysqli_query($conn, "SELECT `device`, `name`, `low_since`, `last_seen`, `last_sent` FROM `battery_alert`");
+    $result = mysqli_query($conn, "SELECT `device`, `name`, `low_since`, `last_seen`, `last_sent`, `last_attempt` FROM `battery_alert`");
     if ($result === false) {
         syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Reading battery_alert failed (" . mysqli_error($conn) . ")");
     } else {
@@ -77,7 +77,7 @@ if (!batteryAlertEnsureTable($conn)) {
                     }
                     syslog(LOG_WARNING, "(SYSTEM){BATTERY}: *LOW* $device->name battery is low");
                     $batteryState[$device->key] = array('device' => $device->key, 'name' => $device->name,
-                        'low_since' => $batteryNow, 'last_seen' => $batteryNow, 'last_sent' => null);
+                        'low_since' => $batteryNow, 'last_seen' => $batteryNow, 'last_sent' => null, 'last_attempt' => null);
                     $batteryNotify = true;
                 } else {
                     // Still low
@@ -85,10 +85,15 @@ if (!batteryAlertEnsureTable($conn)) {
                         "UPDATE `battery_alert` SET `last_seen` = '$batteryNow', `name` = '$deviceName' WHERE `device` = '$deviceKey'")
                     or syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Updating low state of $device->name failed (" . mysqli_error($conn) . ")");
                     $lastSent = $batteryState[$device->key]['last_sent'];
+                    $lastAttempt = $batteryState[$device->key]['last_attempt'] ?? null;
                     if (empty($lastSent)) {
-                        // Never emailed (notifications were off, mail was not set up, or sending failed)
-                        $batteryNotify = true;
-                    } elseif ($batterySettings->reminder_hours > 0 && strtotime($lastSent) <= strtotime('-' . $batterySettings->reminder_hours . ' hours')) {
+                        // Never emailed (notifications were off, mail was not set up, or sending failed).
+                        // After a failed send, wait before trying again.
+                        if (empty($lastAttempt) || strtotime($lastAttempt) <= strtotime('-' . BATTERY_ALERT_RETRY_AFTER)) {
+                            $batteryNotify = true;
+                        }
+                    } elseif ($batterySettings->reminder_hours > 0 && strtotime($lastSent) <= strtotime('-' . $batterySettings->reminder_hours . ' hours')
+                        && (empty($lastAttempt) || strtotime($lastAttempt) <= strtotime('-' . BATTERY_ALERT_RETRY_AFTER))) {
                         $batteryNotify = true;
                     }
                 }
@@ -138,13 +143,15 @@ if (!batteryAlertEnsureTable($conn)) {
                 syslog(LOG_WARNING, "(SYSTEM){BATTERY}[WARNING]: *LOW* $lowNames (Notification Not Sent: email is not set up)");
             } else {
                 list($subject, $message) = batteryAlertLowMessage($config, $batterySettings, $batteryLow);
+                $sentKeys = implode("', '", array_map(fn($k) => mysqli_real_escape_string($conn, $k), array_keys($batteryLow)));
                 if (batteryAlertSend($conn, $batterySettings, $subject, $message)) {
-                    $sentKeys = implode("', '", array_map(fn($k) => mysqli_real_escape_string($conn, $k), array_keys($batteryLow)));
-                    mysqli_query($conn, "UPDATE `battery_alert` SET `last_sent` = '$batteryNow' WHERE `device` IN ('$sentKeys')")
+                    mysqli_query($conn, "UPDATE `battery_alert` SET `last_sent` = '$batteryNow', `last_attempt` = '$batteryNow' WHERE `device` IN ('$sentKeys')")
                     or syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Saving the send time failed (" . mysqli_error($conn) . ")");
                     syslog(LOG_ALERT, "(SYSTEM){BATTERY}: *LOW* $lowNames (Notification Sent)");
                 } else {
-                    syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: *LOW* $lowNames (Notification Failed, retrying next run)");
+                    mysqli_query($conn, "UPDATE `battery_alert` SET `last_attempt` = '$batteryNow' WHERE `device` IN ('$sentKeys')")
+                    or syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: Saving the attempt time failed (" . mysqli_error($conn) . ")");
+                    syslog(LOG_ERR, "(SYSTEM){BATTERY}[ERROR]: *LOW* $lowNames (Notification Failed, retrying in " . BATTERY_ALERT_RETRY_AFTER . ")");
                 }
             }
         }

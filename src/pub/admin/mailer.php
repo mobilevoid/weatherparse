@@ -46,9 +46,11 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
 
     // Mail it
     $testEmail = mailer($email, $subject, $message);
-    $mgStatus = ($config->mailgun->enabled === true) ? 'Mailgun: ' . $testEmail['message'] : false;
+    $mgStatus = ($config->mailgun->enabled === true) ? 'Mailgun: ' . ($testEmail['message'] ?? 'no reply') : false;
+    // Mailgun always returns its reply (also on errors); it only accepted the mail when there is a message id
+    $testSent = ($config->mailgun->enabled === true) ? !empty($testEmail['id']) : (bool)$testEmail;
 
-    if (!$testEmail) {
+    if (!$testSent) {
         // Log it
         syslog(LOG_INFO, "(SYSTEM)[ERROR]: Error sending test email to $email");
         // Display message
