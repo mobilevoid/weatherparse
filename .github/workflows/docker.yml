@@ -1,13 +1,17 @@
 name: docker
 
-# Builds the WeatherParse image for PCs (amd64) and Raspberry Pi (arm64), smoke-tests it with a throwaway
-# database, and publishes it to ghcr.io only after the test passes (main branch: tag "edge"; releases: version tags).
+# Builds the WeatherParse image, smoke-tests it with compose.yaml (MariaDB + WeatherParse), and then builds the
+# amd64 + arm64 image and pushes it to this repository's ghcr.io package, which stays private while the repository
+# is private. Runs only on release tags (v*) and on demand (Actions, docker, Run workflow) to keep Actions minutes low.
 on:
   push:
-    branches: [main]
     tags: ["v*"]
-  pull_request:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Push the image to ghcr.io after the test"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,53 +26,66 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build image (amd64)
-        run: docker build -t weatherparse:test .
-
-      - name: Start a throwaway database and the container
+      - name: Start WeatherParse and MariaDB with compose.yaml
         run: |
-          docker network create wp
-          docker run -d --name db --network wp \
-            -e MARIADB_ROOT_PASSWORD=ci-root-pass -e MARIADB_DATABASE=weatherparse \
-            -e MARIADB_USER=weatherparse -e MARIADB_PASSWORD=ci-pass mariadb:11
-          docker run -d --name wp --network wp -p 8080:80 -p 8443:443 \
-            -e TZ=Etc/UTC -e MYSQL_HOSTNAME=db -e MYSQL_DATABASE=weatherparse \
-            -e MYSQL_USER=weatherparse -e MYSQL_PASSWORD=ci-pass -e MYSQL_ROOT_PASSWORD=ci-root-pass \
-            weatherparse:test
-          for i in $(seq 1 60); do
+          cat > .env <<'ENV'
+          TZ=Etc/UTC
+          MYSQL_DATABASE=weatherparse
+          MYSQL_USER=weatherparse
+          MYSQL_PASSWORD=ci-pass
+          MYSQL_ROOT_PASSWORD=ci-root-pass
+          HTTP_PORT=8080
+          HTTPS_PORT=8443
+          WEATHERPARSE_IMAGE=weatherparse:test
+          ENV
+          docker compose config --quiet
+          docker compose up -d --build
+          for i in $(seq 1 90); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/ || true)
             [ "$code" = 200 ] || [ "$code" = 302 ] && break
             sleep 2
           done
           echo "HTTP status: $code"
-          docker logs wp | tail -40
+          docker compose logs weatherparse | tail -40
           [ "$code" = 200 ] || [ "$code" = 302 ]
 
       - name: Check the running container
         run: |
           set -e
           curl -sk -o /dev/null -w 'HTTPS status: %{http_code}\n' https://localhost:8443/
-          docker exec wp php -v | head -1 | grep -q 'PHP 8.4'
-          docker exec wp php -l /opt/weatherparse/src/inc/loader.php
+          docker compose exec -T weatherparse php -v | head -1 | grep -q 'PHP 8.4'
+          docker compose exec -T weatherparse php -l /opt/weatherparse/src/inc/loader.php
           # The AcuRite Access needs TLS 1.1 allowed
-          docker exec wp grep -A2 '^\[system_default_sect\]' /etc/ssl/openssl.cnf | grep -q 'MinProtocol = TLSv1.1'
+          docker compose exec -T weatherparse grep -A2 '^\[system_default_sect\]' /etc/ssl/openssl.cnf | grep -q 'MinProtocol = TLSv1.1'
           # Camera tools and scripts are in the image
-          docker exec wp sh -c 'command -v ffmpeg && command -v convert && command -v wget && test -f /opt/weatherparse/cam/webcam && test -f /opt/weatherparse/cam/templates/config.env'
-          docker exec wp crontab -l
+          docker compose exec -T weatherparse sh -c 'command -v ffmpeg && command -v convert && command -v wget && test -f /opt/weatherparse/cam/webcam && test -f /opt/weatherparse/cam/templates/config.env'
+          docker compose exec -T weatherparse crontab -l
           # No local settings or images were baked in
-          docker exec wp sh -c 'test ! -e /opt/weatherparse/src/usr/config.php && test ! -e /opt/weatherparse/cam/config.env'
+          docker compose exec -T weatherparse sh -c 'test ! -e /opt/weatherparse/src/usr/config.php && test ! -e /opt/weatherparse/cam/config.env'
           # The web installer page loads without PHP errors
           page=$(curl -sL http://localhost:8080/)
           echo "$page" | grep -qi 'weatherparse'
           ! echo "$page" | grep -qiE 'Fatal error|Parse error|Warning:'
+          # The setup (installer) page is what a fresh install shows; it uses the WeatherParse icons and no tracking
+          curl -sL -o /dev/null -w 'Final URL: %{url_effective}
+' http://localhost:8080/
+          echo "$page" | grep -q 'favicon.svg'
+          ! echo "$page" | grep -qiE 'googletagmanager|matomo'
+          curl -sf -o /dev/null http://localhost:8080/favicon.svg
+          curl -sf -o /dev/null http://localhost:8080/favicon.ico
+          curl -sf -o /dev/null http://localhost:8080/img/social.png
 
       - name: Container logs on failure
         if: failure()
-        run: docker logs wp || true
+        run: docker compose logs || true
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v || true
 
   publish:
     needs: smoke-test
-    if: github.event_name != 'pull_request'
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

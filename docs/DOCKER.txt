@@ -1,21 +1,54 @@
 WEATHERPARSE DOCKER GUIDE
 =========================
 
-Note:
-    WeatherParse does not publish Docker images yet, and the Acuparse Docker images and installer scripts do not apply
-    to WeatherParse. Build the image locally from the Dockerfile in this repository. The supported install method is
-    the manual install in docs/INSTALL.txt.
+The WeatherParse container holds the application, Apache with PHP 8.4, cron and the camera tools. The database runs
+in a second container (MariaDB). compose.yaml in this repository starts both.
 
-The WeatherParse container includes the application and web server. It does NOT include a database; run MariaDB
-separately (for example as a second container) and give the WeatherParse container access to it.
+Quick Start with Docker Compose
+===============================
 
-Building the Image
-==================
-
-Install Docker (https://docs.docker.com/get-docker/), then from a checkout of this repository:
+Install Docker with the compose plugin (https://docs.docker.com/get-docker/), then:
 
     git clone https://github.com/mobilevoid/weatherparse.git
     cd weatherparse
+    cp .env.example .env
+    (edit .env: set MYSQL_PASSWORD, MYSQL_ROOT_PASSWORD and TZ)
+    docker compose up -d --build
+
+Open http://<docker host>/ and finish setup in the web installer. The database host is db; the database name, user
+and password are the ones in .env.
+
+compose.yaml keeps the database, your settings, the camera pictures and the backups on named volumes (db, config, cam,
+backups), so they survive "docker compose down" and image updates. "docker compose down -v" deletes them.
+
+To update: git pull, then docker compose up -d --build, then sign in as admin; the site runs the updater if the
+version changed.
+
+Settings in .env
+----------------
+
+- TZ                    Time zone, for example America/Chicago (required by the container)
+- MYSQL_DATABASE        Database name (default weatherparse)
+- MYSQL_USER            Database user (default weatherparse)
+- MYSQL_PASSWORD        Database user password (required)
+- MYSQL_ROOT_PASSWORD   MariaDB root password (required; the container uses it once to grant the user its rights)
+- HTTP_PORT, HTTPS_PORT Host ports (default 80 and 443; the AcuRite Access always sends to 443)
+- WEATHERPARSE_IMAGE    Image name to build or use (default weatherparse:local)
+
+Never commit .env; it is in .gitignore.
+
+Prebuilt Images
+===============
+
+GitHub Actions builds the image for amd64 (PCs) and arm64 (Raspberry Pi 4/5) on release tags and on demand, after a
+smoke test that starts compose.yaml and loads the setup page. Images go to the repository's own package
+(ghcr.io/mobilevoid/weatherparse), which is private while the repository is private. To use one, set
+WEATHERPARSE_IMAGE in .env (for example ghcr.io/mobilevoid/weatherparse:latest), sign in to ghcr.io if the package is
+private, and run docker compose up -d without --build.
+
+Building the Image Without Compose
+==================================
+
     docker build -t weatherparse:local .
 
 The container starts with the command weatherparse (see .docker/docker-entrypoint) and expects these environment
@@ -49,9 +82,9 @@ paths on volumes or bind mounts (https://docs.docker.com/storage/bind-mounts):
 Webcam
 ======
 
-The container is not set up to run the webcam script or to be reached over SSH. Run the webcam script on the Docker
-host (copy the cam folder from this repository), and copy the images into the webcam volume. Set the paths in
-cam/config.env accordingly.
+The image includes ffmpeg, ImageMagick and the camera scripts, and cron runs them once a camera is set up. Copy
+cam/templates/config.env to /opt/weatherparse/cam/config.env in the container (or bind mount your own) and set the
+camera address there. Pictures are written to the cam volume.
 
 Email
 =====

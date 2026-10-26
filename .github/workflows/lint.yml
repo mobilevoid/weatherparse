@@ -1,0 +1,48 @@
+name: lint
+
+# Quick checks on every push: PHP syntax (php -l) on every PHP file with PHP 8.4, bash syntax on the shell scripts,
+# and a few project rules. Takes well under a minute.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: PHP syntax (PHP 8.4)
+        run: |
+          docker run --rm -v "$PWD":/app -w /app php:8.4-cli sh -c '
+            fail=0; count=0
+            for f in $(find . -name "*.php" -not -path "./.git/*" -not -path "./vendor/*"); do
+              count=$((count+1))
+              out=$(php -l "$f" 2>&1) || { echo "$out"; fail=1; }
+            done
+            echo "Checked $count PHP files"
+            exit $fail'
+
+      - name: Shell script syntax
+        run: |
+          set -e
+          for f in cam/webcam cron/backup .docker/docker-build .docker/docker-entrypoint .docker/docker-healthcheck \
+                   pi-gen/stage-weatherparse/prerun.sh pi-gen/stage-weatherparse/*/*.sh; do
+            [ -f "$f" ] || continue
+            bash -n "$f" && echo "ok $f"
+          done
+
+      - name: Project rules (no Markdown files, no tracking code)
+        run: |
+          set -e
+          md=$(git ls-files '*.md' '*.MD' '*.markdown')
+          if [ -n "$md" ]; then echo "Markdown files are not allowed (docs are .txt):"; echo "$md"; exit 1; fi
+          if git grep -n -i -E 'googletagmanager|gtag\(|matomo|_paq' -- src ':!src/pub/lib' ':!src/fcn/updater' ':!src/pub/admin/settings.php'; then
+            echo "Tracking code found"; exit 1
+          fi
+          echo "ok"

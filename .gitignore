@@ -18,3 +18,4 @@ vendor
 pi-gen/stage-weatherparse/01-weatherparse/files/weatherparse/
 cron/backup.conf
 src/pub/img/cam2/*
+.env

@@ -1,0 +1,63 @@
+##
+# WeatherParse - AcuRite Access/smartHUB and IP Camera Data Processing, Display, and Upload.
+# @copyright Copyright (C) 2026 WeatherParse contributors
+# @link https://github.com/mobilevoid/weatherparse
+# @license AGPL-3.0+
+##
+
+##
+# File: compose.yaml
+# WeatherParse with its MariaDB database. See docs/DOCKER.txt.
+#
+#   cp .env.example .env      (then set the passwords and time zone in .env)
+#   docker compose up -d --build
+#   open http://<this host>/ and finish setup in the web installer (database host: db)
+##
+
+name: weatherparse
+
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MARIADB_DATABASE: ${MYSQL_DATABASE:-weatherparse}
+      MARIADB_USER: ${MYSQL_USER:-weatherparse}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  weatherparse:
+    build: .
+    image: ${WEATHERPARSE_IMAGE:-weatherparse:local}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Etc/UTC}
+      MYSQL_HOSTNAME: db
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-weatherparse}
+      MYSQL_USER: ${MYSQL_USER:-weatherparse}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - config:/opt/weatherparse/src/usr
+      - cam:/opt/weatherparse/src/pub/img/cam
+      - backups:/var/opt/weatherparse/backups
+
+volumes:
+  db:
+  config:
+  cam:
+  backups:
