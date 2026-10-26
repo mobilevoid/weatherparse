@@ -46,6 +46,7 @@ function _logging() {
   rm /var/log/apache2/error.log && touch /var/log/apache2/error.log
   rm /var/log/apache2/access.log && touch /var/log/apache2/access.log
   touch /opt/weatherparse/logs/cron.log
+  mkdir -p /opt/weatherparse/cam/tmp /opt/weatherparse/cam/archive
   echo "END: LOGGING"
 }
 
@@ -72,9 +73,17 @@ function _http() {
 }
 
 function _openSSL() {
+  # The AcuRite Access uses old TLS. Debian 13's openssl.cnf has no TLS section at all, so add one
+  # (the same settings that work on a Raspberry Pi with Debian 13); older files only need the values changed.
   echo "Configuring OpenSSL for TLS v1.1 support"
-  sed -i 's/MinProtocol = TLSv1.2/MinProtocol = TLSv1.1/' /etc/ssl/openssl.cnf
-  sed -i 's/SECLEVEL=2/SECLEVEL=1/' /etc/ssl/openssl.cnf
+  CNF=/etc/ssl/openssl.cnf
+  if grep -q '^\[system_default_sect\]' "$CNF"; then
+    sed -i 's/^MinProtocol = .*/MinProtocol = TLSv1.1/; s/^CipherString = .*/CipherString = DEFAULT@SECLEVEL=1/' "$CNF"
+  else
+    sed -i '/^\[openssl_init\]/a ssl_conf = ssl_sect' "$CNF"
+    printf '\n[ssl_sect]\nsystem_default = system_default_sect\n\n[system_default_sect]\nMinProtocol = TLSv1.1\nCipherString = DEFAULT@SECLEVEL=1\n' >>"$CNF"
+  fi
+  grep -A2 '^\[system_default_sect\]' "$CNF"
   echo "END: OpenSSL Config"
 }
 

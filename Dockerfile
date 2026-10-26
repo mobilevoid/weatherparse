@@ -25,8 +25,8 @@
 # WeatherParse Dockerfile
 ##
 
-ARG OS_VERSION=bullseye
-FROM php:7.4-apache-${OS_VERSION}
+ARG OS_VERSION=trixie
+FROM php:8.4-apache-${OS_VERSION}
 
 ARG BUILD_DATE
 ARG VCS_REF
@@ -38,7 +38,7 @@ LABEL org.label-schema.schema-version="1.0" \
 org.label-schema.build-date=${BUILD_DATE} \
 org.label-schema.name="mobilevoid/weatherparse" \
 org.label-schema.description="WeatherParse Weather Data Processing" \
-org.label-schema.url="https://www.acuarse.com/" \
+org.label-schema.url="https://github.com/mobilevoid/weatherparse" \
 org.label-schema.vcs-url="https://github.com/mobilevoid/weatherparse" \
 org.label-schema.vcs-ref=${VCS_REF} \
 org.label-schema.version=${BUILD_VERSION} \
@@ -53,13 +53,18 @@ mariadb-client \
 rsyslog \
 python3-certbot-apache \
 cron \
+ffmpeg \
+imagemagick \
+fonts-dejavu-core \
+wget \
+ca-certificates \
 && docker-php-ext-install mysqli \
 && docker-php-ext-enable mysqli \
 && apt-get autoremove --purge -yqq \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/*
 
-COPY .. "${WEATHERPARSE_DIR}"
+COPY . "${WEATHERPARSE_DIR}"
 WORKDIR "${WEATHERPARSE_DIR}"
 
 RUN echo "Copy and run WeatherParse BUILD" \
@@ -72,4 +77,4 @@ RUN echo "Copy and run WeatherParse BUILD" \
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["weatherparse"]
 
-EXPOSE 443
+EXPOSE 80 443

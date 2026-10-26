@@ -63,7 +63,10 @@ if [ "$1" = 'weatherparse' ]; then
   function _install_system_crontab() {
     WEATHERPARSE_MAIN_CRON='* * * * * /usr/local/bin/php /opt/weatherparse/cron/cron.php > /opt/weatherparse/logs/cron.log 2>&1'
     WEATHERPARSE_BACKUP_CRON='5 0 * * * /bin/bash /opt/weatherparse/cron/backup > /opt/weatherparse/logs/backup.log 2>&1'
-    printf "%s\n%s\n" "$WEATHERPARSE_MAIN_CRON" "$WEATHERPARSE_BACKUP_CRON" | crontab -
+    # Camera jobs only act once a camera config (cam/config.env, from cam/templates) has been added
+    WEATHERPARSE_CAM_CRON='*/10 * * * * [ -f /opt/weatherparse/cam/config.env ] && /bin/bash /opt/weatherparse/cam/webcam > /opt/weatherparse/logs/cam.log 2>&1'
+    WEATHERPARSE_CAM_CLEANUP_CRON='15 3 * * * [ -f /opt/weatherparse/cam/config.env ] && /bin/bash /opt/weatherparse/cam/webcam cleanup > /opt/weatherparse/logs/cam-cleanup.log 2>&1'
+    printf "%s\n%s\n%s\n%s\n" "$WEATHERPARSE_MAIN_CRON" "$WEATHERPARSE_BACKUP_CRON" "$WEATHERPARSE_CAM_CRON" "$WEATHERPARSE_CAM_CLEANUP_CRON" | crontab -
     env | grep -E MYSQL\|TZ >>/etc/environment
   }
 
