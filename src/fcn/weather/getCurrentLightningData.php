@@ -84,9 +84,10 @@ class getCurrentLightningData
             $this->strikecount = (float)$atlasData['strikecount'];
             $this->currentstrikes = (float)$currentData['currentstrikes'];
             $this->interference = (float)$atlasData['interference'];
-            $this->last_strike_ts = $atlasData['last_strike_ts'];
-            $this->last_strike_ts_json = date($this->json_date, strtotime($atlasData['last_strike_ts']));
-            $this->last_strike_display = date($config->site->dashboard_display_date, strtotime($this->last_strike_ts));
+            // No strike recorded yet: null (it used to come out as the Unix epoch, 1969-12-31)
+            $this->last_strike_ts = !empty($atlasData['last_strike_ts']) ? $atlasData['last_strike_ts'] : null;
+            $this->last_strike_ts_json = $this->last_strike_ts !== null ? date($this->json_date, strtotime($this->last_strike_ts)) : null;
+            $this->last_strike_display = $this->last_strike_ts !== null ? date($config->site->dashboard_display_date, strtotime($this->last_strike_ts)) : null;
             $this->last_strike_distance_KM = round($atlasData['last_strike_distance'] * 1.609, 1);
             $this->last_strike_distance_M = round($atlasData['last_strike_distance'], 1);
         }
@@ -99,22 +100,23 @@ class getCurrentLightningData
     }
 
     // Calculate Last Update
+    // Was a time inside the window? (Was a nested global function; declaring it twice was fatal.)
+    private static function isBetween($number, $from, $to): bool
+    {
+        return $number > $from && $number < $to;
+    }
+
     private function lastUpdate($last_strike_ts, $last_strike_display, $source, $json_date = 'c'): ?string
     {
 
         if ($last_strike_ts !== null) {
 
-            function between($number, $from, $to): bool
-            {
-                return $number > $from && $number < $to;
-            }
-
             if ($source === 'json') {
                 $output = date($json_date, strtotime($last_strike_ts));
-            } elseif (between(strtotime($last_strike_ts), strtotime(date('Y-m-d H:i:s')) - 1800,
+            } elseif (self::isBetween(strtotime($last_strike_ts), strtotime(date('Y-m-d H:i:s')) - 1800,
                 strtotime(date('Y-m-d H:i:s')) + 1800)) {
                 $output = '<i title="Reported within last 30 Minutes" class="fas fa-exclamation-triangle lightningDanger"></i><strong> ' . $last_strike_display . '</strong>';
-            } elseif (between(strtotime($last_strike_ts), strtotime(date('Y-m-d H:i:s')) - 7200,
+            } elseif (self::isBetween(strtotime($last_strike_ts), strtotime(date('Y-m-d H:i:s')) - 7200,
                 strtotime(date('Y-m-d H:i:s')) + 7200)) {
                 $output = '<i title="Reported within last 2 Hours" class="fas fa-exclamation-circle lightningWarning"></i> ' . $last_strike_display;
             } else {
