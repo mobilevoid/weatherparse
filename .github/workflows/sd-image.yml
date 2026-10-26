@@ -18,6 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # pi-gen needs about 20 GB. The action's own increase-runner-disk-size step purges a fixed package list and
+      # fails when GitHub drops one of those packages from the runner image, so free the space here instead.
+      - name: Free disk space on the runner
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL             /usr/local/share/boost /usr/local/share/powershell /usr/share/swift /usr/local/julia* /opt/az /opt/microsoft
+          sudo docker image prune --all --force >/dev/null || true
+          df -h /
+
       - name: Put this WeatherParse version into the image stage
         run: |
           set -e
@@ -42,7 +51,7 @@ jobs:
           timezone: Etc/UTC
           enable-ssh: 1
           compression: xz
-          increase-runner-disk-size: true
+          increase-runner-disk-size: false
           verbose-output: true
 
       - uses: actions/upload-artifact@v4
