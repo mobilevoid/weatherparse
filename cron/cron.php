@@ -23,7 +23,7 @@
 
 /**
  * File: cron/cron.php
- * Called by system to send data to external weather services, archive to database, and check for updates
+ * Called by system to send data to external weather services, archive to database, check batteries, and check for updates
  */
 
 // Get the loader
@@ -251,6 +251,9 @@ if ($installed === true) {
             CHECK_FOR_OUTAGE:
             require(APP_BASE_PATH . '/fcn/cron/noChange.php');
         }
+
+        // Check for low batteries
+        require(APP_BASE_PATH . '/fcn/cron/batteryAlert.php');
     }
 } else {
     exit(syslog(LOG_EMERG, "(SYSTEM){CRON}[ERROR]: Not Installed. Run installer"));

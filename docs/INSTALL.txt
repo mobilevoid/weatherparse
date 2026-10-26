@@ -374,6 +374,21 @@ The updater first checks to see if there is new data to send. If there isn't, it
 there is no new data due to updates not being received in the configured period, WeatherParse will send an email at
 your chosen interval.
 
+Email Battery Notifications
+===========================
+
+WeatherParse emails when a device reports a low battery: the AcuRite Access hub (its backup batteries), the Atlas,
+the Iris, or a tower sensor. Configure it in Admin, Settings, Features, Battery Alerts:
+
+- Enabled: on by default once email works (a local mail program or Mailgun). Low batteries are always logged.
+- Recipients: email addresses separated by commas. Leave empty to email all admins, like outage notifications.
+- Reminder Every: hours between reminders while a battery stays low (default 24). 0 sends no reminders.
+- Battery OK Email: email once when the battery reports normal again (default yes).
+
+The cron job checks every run. A device that has not reported for an hour is skipped, since that is an outage and not
+a battery problem. One email lists every low device, when it was first seen low, which batteries to replace, and links
+to the dashboard and the Sensor Status page. The state is kept in the battery_alert database table.
+
 Tower Sensors
 =============
 

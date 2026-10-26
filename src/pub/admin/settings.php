@@ -29,6 +29,9 @@
 // Get the loader
 require(dirname(__DIR__, 2) . '/inc/loader.php');
 
+// Battery alert settings helpers
+require_once(APP_BASE_PATH . '/fcn/batteryAlert.php');
+
 /**
  * @var object $config Global Config
  */
@@ -129,6 +132,16 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         $config->outage_alert->enabled = isset($_POST['outage_alert']['enabled']) ? (bool)$_POST['outage_alert']['enabled'] : ($config->outage_alert->enabled ?? false);
         $config->outage_alert->offline_for = (isset($_POST['outage_alert']['offline_for'])) ? $_POST['outage_alert']['offline_for'] : ($config->outage_alert->offline_for ?? '5 minutes');
         $config->outage_alert->interval = (isset($_POST['outage_alert']['interval'])) ? $_POST['outage_alert']['interval'] : ($config->outage_alert->interval ?? '1 hour');
+
+        // Email Battery Alerts (fields of a disabled alert are not sent and keep their saved values)
+        $batteryAlert = batteryAlertSettings($config);
+        if (!isset($config->battery_alert)) {
+            $config->battery_alert = (object)array();
+        }
+        $config->battery_alert->enabled = isset($_POST['battery_alert']['enabled']) ? (bool)$_POST['battery_alert']['enabled'] : $batteryAlert->enabled;
+        $config->battery_alert->recipients = isset($_POST['battery_alert']['recipients']) ? batteryAlertCleanRecipients((string)$_POST['battery_alert']['recipients']) : $batteryAlert->recipients;
+        $config->battery_alert->reminder_hours = isset($_POST['battery_alert']['reminder_hours']) ? max(0, min(BATTERY_ALERT_MAX_REMINDER_HOURS, (int)$_POST['battery_alert']['reminder_hours'])) : $batteryAlert->reminder_hours;
+        $config->battery_alert->send_recovery = isset($_POST['battery_alert']['send_recovery']) ? (bool)$_POST['battery_alert']['send_recovery'] : $batteryAlert->send_recovery;
 
         // Google
 

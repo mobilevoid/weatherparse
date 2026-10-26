@@ -90,6 +90,18 @@ CREATE TABLE `atlas_status`
   DEFAULT CHARSET = utf8
   COLLATE = utf8_bin;
 
+/* Low battery alert state, one row per device while its battery is low (keep in sync with src/fcn/batteryAlert.php) */
+CREATE TABLE `battery_alert`
+(
+    `device`    varchar(32) COLLATE utf8_bin  NOT NULL,
+    `name`      varchar(255) COLLATE utf8_bin NOT NULL,
+    `low_since` datetime                      NOT NULL,
+    `last_seen` datetime                      NOT NULL,
+    `last_sent` datetime                               DEFAULT NULL
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  COLLATE = utf8_bin;
+
 CREATE TABLE `cwop_updates`
 (
     `timestamp` timestamp                 NOT NULL DEFAULT current_timestamp(),
@@ -378,6 +390,9 @@ ALTER TABLE `atlasLightning`
 
 ALTER TABLE `atlas_status`
     ADD PRIMARY KEY (`last_update`);
+
+ALTER TABLE `battery_alert`
+    ADD PRIMARY KEY (`device`);
 
 ALTER TABLE `cwop_updates`
     ADD PRIMARY KEY (`timestamp`);

@@ -235,6 +235,14 @@ return (object)array(
         'interval' => '1 hour', // How often to email admin about outages.
     ),
 
+    // Email Low Battery Alerts
+    'battery_alert' => (object)array(
+        'enabled' => true, // true or false. Emails are only sent once mail (local or Mailgun) is set up.
+        'recipients' => '', // Comma separated addresses. Empty sends to all admins, like outage alerts.
+        'reminder_hours' => 24, // Hours between reminders while a battery stays low. 0 for no reminders.
+        'send_recovery' => true, // Email once when a low battery is normal again.
+    ),
+
     // Debug Settings
     'debug' => (object)array(
         'logging' => false, // Debug logging to Syslog. True/False

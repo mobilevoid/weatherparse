@@ -294,6 +294,118 @@
 
             <hr class="hr-dotted">
 
+            <!-- Battery Alerts -->
+            <?php
+            require_once(APP_BASE_PATH . '/fcn/batteryAlert.php');
+            $batteryAlert = batteryAlertSettings($config);
+            $batteryAlertFields = 'document.getElementById("battery-alert-recipients").disabled=%1$s;document.getElementById("battery-alert-reminder-hours").disabled=%1$s;document.getElementById("battery-alert-recovery-0").disabled=%1$s;document.getElementById("battery-alert-recovery-1").disabled=%1$s;';
+            ?>
+            <section class="row alert alert-secondary">
+                <div class="col mb-2 mt-2">
+                    <div class="row">
+                        <div class="col">
+                            <h3>Battery Alerts</h3>
+                            <p>Sends an email when the Access hub, Atlas, Iris or a tower reports a low battery, a
+                                reminder while it stays low, and a note when it is normal again. Devices that have not
+                                reported for an hour are left to the outage alert.</p>
+                            <?php if (batteryAlertMailConfigured($config) !== true) { ?>
+                                <p><strong>Email is not set up</strong> (no local mail program and Mailgun is off), so
+                                    no battery emails can be sent yet. Low batteries are still logged.</p>
+                            <?php } ?>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="battery_alert[enabled]"
+                                       id="battery-alert-enabled-0" value="0"
+                                       onclick='<?= sprintf($batteryAlertFields, 'true'); ?>'
+                                    <?= ($batteryAlert->enabled === false) ? 'checked="checked"' : false; ?>>
+                                <label class="form-check-label btn btn-danger"
+                                       for="battery-alert-enabled-0"><strong>Disabled</strong></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="battery_alert[enabled]"
+                                       id="battery-alert-enabled-1" value="1"
+                                       onclick='<?= sprintf($batteryAlertFields, 'false'); ?>'
+                                    <?= ($batteryAlert->enabled === true) ? 'checked="checked"' : false; ?>>
+                                <label class="form-check-label btn btn-success"
+                                       for="battery-alert-enabled-1">Enabled</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label class="col-form-label" for="battery-alert-recipients">Recipients</label>
+                                </div>
+                                <div class="col">
+                                    <input type="text" class="form-control" name="battery_alert[recipients]"
+                                           id="battery-alert-recipients"
+                                        <?= ($batteryAlert->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                           placeholder="All admins"
+                                           value="<?= htmlspecialchars($batteryAlert->recipients); ?>">
+                                    <small id="battery-alert-recipients-help" class="form-text text-muted">Email
+                                        addresses separated by commas. Leave empty to email all admins, like outage
+                                        alerts.</small>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-3">
+                                    <label class="col-form-label" for="battery-alert-reminder-hours">Reminder
+                                        Every</label>
+                                </div>
+                                <div class="col">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" name="battery_alert[reminder_hours]"
+                                               id="battery-alert-reminder-hours" min="0"
+                                               max="<?= BATTERY_ALERT_MAX_REMINDER_HOURS; ?>" step="1"
+                                            <?= ($batteryAlert->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                               value="<?= $batteryAlert->reminder_hours; ?>">
+                                        <span class="input-group-text">hours</span>
+                                    </div>
+                                    <small id="battery-alert-reminder-hours-help" class="form-text text-muted">How
+                                        often to repeat the email while a battery stays low. 0 sends no
+                                        reminders.</small>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-3">
+                                    <label class="col-form-label">Battery OK Email</label>
+                                </div>
+                                <div class="col">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               name="battery_alert[send_recovery]"
+                                               id="battery-alert-recovery-0" value="0"
+                                            <?= ($batteryAlert->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                            <?= ($batteryAlert->send_recovery === false) ? 'checked="checked"' : false; ?>>
+                                        <label class="form-check-label btn btn-danger"
+                                               for="battery-alert-recovery-0">No</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio"
+                                               name="battery_alert[send_recovery]"
+                                               id="battery-alert-recovery-1" value="1"
+                                            <?= ($batteryAlert->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                            <?= ($batteryAlert->send_recovery === true) ? 'checked="checked"' : false; ?>>
+                                        <label class="form-check-label btn btn-success"
+                                               for="battery-alert-recovery-1">Yes</label>
+                                    </div>
+                                    <small id="battery-alert-recovery-help" class="form-text text-muted d-block">Email
+                                        once when a low battery reports normal again.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="hr-dotted">
+
             <!-- Google Settings -->
             <section class="row alert alert-secondary">
                 <div class="col mb-2 mt-2">
