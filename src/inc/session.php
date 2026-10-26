@@ -31,7 +31,14 @@
  */
 
 if (!isset($_SESSION)) {
-    session_name('session');
+    // One cookie name per install, so two installs on one server (e.g. live and a test copy) never share logins
+    session_name('wp_session_' . substr(sha1(APP_BASE_PATH), 0, 10));
+    session_set_cookie_params([
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+    ]);
     session_start();
 
 // Process Login Cookie
@@ -40,7 +47,8 @@ if (!isset($_SESSION)) {
      */
     if (!isset($_SESSION['authenticated']) && $installed === true) {
         if (isset($_COOKIE['device'])) {
-            $deviceKey = (string)$_COOKIE['device'];
+            // The cookie comes from the browser: escape it before it goes into SQL
+            $deviceKey = mysqli_real_escape_string($conn, (string)$_COOKIE['device']);
             $result = mysqli_query($conn, "SELECT * FROM `sessions` WHERE `device_key`= '$deviceKey'");
 
             // Count the rows returned
