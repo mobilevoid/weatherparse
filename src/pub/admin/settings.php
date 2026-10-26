@@ -150,14 +150,8 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         $config->google->recaptcha->secret = (isset($_POST['google']['recaptcha']['secret'])) ? $_POST['google']['recaptcha']['secret'] : ($config->google->recaptcha->secret ?? null);
         $config->google->recaptcha->sitekey = (isset($_POST['google']['recaptcha']['sitekey'])) ? $_POST['google']['recaptcha']['sitekey'] : ($config->google->recaptcha->sitekey ?? null);
 
-        // Analytics
-        $config->google->analytics->enabled = isset($_POST['google']['analytics']['enabled']) ? (bool)$_POST['google']['analytics']['enabled'] : ($config->google->analytics->enabled ?? false);
-        $config->google->analytics->id = (isset($_POST['google']['analytics']['id'])) ? $_POST['google']['analytics']['id'] : ($config->google->analytics->id ?? null);
-
-        // Matomo
-        $config->matomo->enabled = isset($_POST['matomo']['enabled']) ? (bool)$_POST['matomo']['enabled'] : ($config->matomo->enabled ?? false);
-        $config->matomo->site = (isset($_POST['matomo']['site'])) ? $_POST['matomo']['site'] : ($config->matomo->site ?? null);
-        $config->matomo->domain = (isset($_POST['matomo']['domain'])) ? $_POST['matomo']['domain'] : ($config->matomo->domain ?? null);
+        // Analytics and Matomo were removed in 4.1.1 (no tracking); drop any keys left in an older config
+        unset($config->google->analytics, $config->matomo);
 
         // Mailgun
         $config->mailgun->enabled = isset($_POST['mailgun']['enabled']) ? (bool)$_POST['mailgun']['enabled'] : ($config->mailgun->enabled ?? false);
@@ -196,6 +190,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         $config->upload->wc->key = (isset($_POST['upload']['wc']['key'])) ? $_POST['upload']['wc']['key'] : ($config->upload->wc->key ?? null);
         $config->upload->wc->device = (isset($_POST['upload']['wc']['device'])) ? $_POST['upload']['wc']['device'] : ($config->upload->wc->device ?? null);
         $config->upload->wc->url = (isset($_POST['upload']['wc']['url'])) ? $_POST['upload']['wc']['url'] : ($config->upload->wc->url ?? 'https://api.weathercloud.net/v01/set');
+        $config->upload->wc->softwareid = (isset($_POST['upload']['wc']['softwareid'])) ? trim((string)$_POST['upload']['wc']['softwareid']) : ($config->upload->wc->softwareid ?? '');
 
         // Windy
         $config->upload->windy->enabled = isset($_POST['upload']['windy']['enabled']) ? (bool)$_POST['upload']['windy']['enabled'] : ($config->upload->windy->enabled ?? false);

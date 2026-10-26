@@ -79,38 +79,6 @@ if ($config->google->recaptcha->enabled === true && ($_SERVER['PHP_SELF'] === '/
             document.getElementById("recaptcha-form").submit();
         }
     </script>
-<?php }
-if ($config->google->analytics->enabled === true) { ?>
-    <!-- Google Analytics -->
-    <script async
-            src="https://www.googletagmanager.com/gtag/js?id=<?= $config->google->analytics->id; ?>"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-
-        gtag('js', new Date());
-        gtag('config', '<?= $config->google->analytics->id; ?>');
-    </script>
-<?php }
-if ($config->matomo->enabled === true) { ?>
-    <!-- Matomo -->
-    <script>
-        let _paq = window._paq = window._paq || [];
-        _paq.push(['trackPageView']);
-        _paq.push(['enableLinkTracking']);
-        (function () {
-            let u = "//<?= $config->matomo->domain; ?>/";
-            _paq.push(['setTrackerUrl', u + 'matomo.php']);
-            _paq.push(['setSiteId', '<?= $config->matomo->site; ?>']);
-            let d = document, g = d.createElement('script'), s = d.getElementsByTagName('script')[0];
-            g.async = true;
-            g.src = u + 'matomo.js';
-            s.parentNode.insertBefore(g, s);
-        })();
-    </script>
 <?php } ?>
 
 <!-- Page Specific Resources -->

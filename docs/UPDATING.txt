@@ -27,6 +27,9 @@ Updating WeatherParse
   program is set up; recipients empty = all admins; reminders every 24 hours; battery OK email on) and creates the
   battery_alert table. Review them in Admin, Settings, Features, Battery Alerts.
 
+- 4.1.0 to 4.1.1 removes the Google Analytics and Matomo settings from config.php and adds an empty Weathercloud
+  Software ID setting (Settings, Uploads). Nothing to do unless Weathercloud issued you a software ID.
+
 Upgrading from Acuparse 3.9.4
 =============================
 

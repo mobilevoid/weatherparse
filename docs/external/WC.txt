@@ -22,3 +22,13 @@ Webcam
 ======
 
 You can link your webcam by using the url: https://<FQDN/IP>/img/cam/latest.jpg
+
+Software ID
+===========
+
+WeatherParse sends its name and version (software=WeatherParse_v<version>) with each upload. Weathercloud also
+knows a "softwareid": a code that Weathercloud issues to a software maker. WeatherParse does not have one, so by
+default none is sent; Weathercloud accepts uploads without it.
+
+If Weathercloud issues you a software ID, enter it in Settings, Uploads, Weathercloud, Software ID. Do not copy an ID
+issued to other software.

@@ -1,0 +1,22 @@
+WEATHERPARSE ARTWORK
+====================
+
+The WeatherParse mark (a sun over two wind streams on a blue tile) and the social card were made for WeatherParse in
+2026. They are part of WeatherParse and use the same license (AGPL-3.0-or-later).
+
+Files
+=====
+
+- src/pub/favicon.svg            The mark. This is the source for every other icon file.
+- src/pub/favicon.ico            16, 32 and 48 pixel renders of the mark.
+- src/pub/apple-touch-icon.png   180 pixel render on a solid background (for phone home screens).
+- src/pub/img/social.png         1200 x 630 social card: the mark, the name and a short tagline, set in DejaVu Sans
+                                 (free font license). Pages use it for link previews when no camera is set up.
+
+Making the icons again
+======================
+
+Render favicon.svg at the size you need with any SVG tool, for example:
+
+    inkscape favicon.svg --export-type=png --export-filename=icon-48.png -w 48 -h 48
+    magick icon-16.png icon-32.png icon-48.png favicon.ico

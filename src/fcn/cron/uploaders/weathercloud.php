@@ -48,10 +48,21 @@ if ((strtotime($result['timestamp']) < strtotime('-10 minutes')) or ($count == 0
     if ($config->station->device === 0 && $config->station->primary_sensor === 0) {
         $wcQuery = $wcQuery . '&uvi=' . ($atlas->uvIndex * 10);
     }
-    $wcQueryStatic = '&softwareid=555e1df0d6eb' . '&software=acuparse_v' . $config->version->app /* softwareid above is registered to Acuparse; keep its name */;
+    // Software name is free text. A softwareid is issued by Weathercloud to a software maker, so it is only sent when
+    // the admin has entered one Weathercloud issued (Settings, Uploads). Weathercloud accepts uploads without it.
+    $wcQueryStatic = '&software=' . urlencode('WeatherParse_v' . $config->version->app);
+    $wcSoftwareId = trim((string)($config->upload->wc->softwareid ?? ''));
+    if ($wcSoftwareId !== '') {
+        $wcQueryStatic .= '&softwareid=' . urlencode($wcSoftwareId);
+    }
     $wcQueryResult = file_get_contents($wcQueryUrl . $wcQuery . $wcQueryStatic);
+    if ($wcQueryResult === false) {
+        $wcQueryResult = 'No response';
+    }
     // Save to DB
-    mysqli_query($conn, "INSERT INTO `wc_updates` (`query`,`result`) VALUES ('$wcQuery', '$wcQueryResult')");
+    $wcQuerySql = mysqli_real_escape_string($conn, $wcQuery);
+    $wcQueryResultSql = mysqli_real_escape_string($conn, (string)$wcQueryResult);
+    mysqli_query($conn, "INSERT INTO `wc_updates` (`query`,`result`) VALUES ('$wcQuerySql', '$wcQueryResultSql')");
     // Log it
     syslog(LOG_NOTICE, "(EXTERNAL){WeatherCloud}: Query = $wcQuery | Response = $wcQueryResult");
 } // No new update to send

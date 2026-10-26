@@ -22,7 +22,7 @@
  */
 /**
  * File: src/fcn/updater/4_x/4_1.php
- * WeatherParse 4.0.0 -> 4.1.0
+ * WeatherParse 4.0.0 -> 4.1.0 -> 4.1.1
  */
 
 /**
@@ -61,5 +61,22 @@ switch ($config->version->app) {
             $notes .= '<li><strong>Warning:</strong> the battery_alert table could not be created. The cron job retries each run; check the database user can CREATE tables.</li>';
         }
         $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Low battery email alerts (Access hub, Atlas, Iris, towers). Battery alerts are ' . (($config->battery_alert->enabled === true) ? 'on' : 'off') . '; see Settings, Features. See CHANGELOG.txt</li>';
+
+    // WeatherParse 4.1.0 to 4.1.1
+    case '4.1.0':
+        $config->version->app = '4.1.1';
+        // No tracking: Google Analytics and Matomo support is gone, so drop their settings
+        if (isset($config->google->analytics)) {
+            unset($config->google->analytics);
+        }
+        if (isset($config->matomo)) {
+            unset($config->matomo);
+        }
+        // Weathercloud: the software ID Acuparse used was issued to Acuparse. WeatherParse sends none unless the
+        // admin enters one that Weathercloud issued.
+        if (isset($config->upload->wc) && !isset($config->upload->wc->softwareid)) {
+            $config->upload->wc->softwareid = '';
+        }
+        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Google Analytics and Matomo removed (no tracking); Weathercloud uploads identify as WeatherParse; new site icon. See CHANGELOG.txt</li>';
 
 }

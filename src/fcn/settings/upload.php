@@ -551,7 +551,7 @@
                                                 <input class="form-check-input" type="radio"
                                                        name="upload[wc][enabled]"
                                                        id="wc-updates-enabled-0" value="0"
-                                                       onclick='document.getElementById("wc-updates-id").disabled=true;document.getElementById("wc-updates-key").disabled=true;document.getElementById("wc-updates-device").disabled=true;'
+                                                       onclick='document.getElementById("wc-updates-id").disabled=true;document.getElementById("wc-updates-key").disabled=true;document.getElementById("wc-updates-device").disabled=true;document.getElementById("wc-updates-softwareid").disabled=true;'
                                                     <?= ($config->upload->wc->enabled === false) ? 'checked="checked"' : false; ?>>
                                                 <label class="form-check-label btn btn-danger"
                                                        for="wc-updates-enabled-0">Disabled</label>
@@ -560,7 +560,7 @@
                                                 <input class="form-check-input" type="radio"
                                                        name="upload[wc][enabled]"
                                                        id="wc-updates-enabled-1" value="1"
-                                                       onclick='document.getElementById("wc-updates-id").disabled=false;document.getElementById("wc-updates-key").disabled=false;document.getElementById("wc-updates-device").disabled=false;'
+                                                       onclick='document.getElementById("wc-updates-id").disabled=false;document.getElementById("wc-updates-key").disabled=false;document.getElementById("wc-updates-device").disabled=false;document.getElementById("wc-updates-softwareid").disabled=false;'
                                                     <?= ($config->upload->wc->enabled === true) ? 'checked="checked"' : false; ?>>
                                                 <label class="form-check-label btn btn-success"
                                                        for="wc-updates-enabled-1">Enabled</label>
@@ -631,6 +631,24 @@
                                                    id="wc-updates-url"
                                                    readonly
                                                    value="<?= $config->upload->wc->url; ?>">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-3">
+                                            <label class="col-form-label" for="wc-updates-softwareid">Software ID</label>
+                                        </div>
+                                        <div class="col">
+                                            <input type="text" class="form-control"
+                                                   name="upload[wc][softwareid]"
+                                                   id="wc-updates-softwareid"
+                                                   maxlength="35"
+                                                   placeholder="Optional"
+                                                <?= ($config->upload->wc->enabled === false) ? 'disabled="disabled"' : false; ?>
+                                                   value="<?= htmlspecialchars((string)($config->upload->wc->softwareid ?? ''), ENT_QUOTES); ?>">
+                                            <small id="wc-updates-softwareid-help" class="form-text text-muted">
+                                                Optional. Only a software ID that Weathercloud issued; leave empty
+                                                otherwise (uploads work without it)
+                                            </small>
                                         </div>
                                     </div>
                                 </div>

@@ -521,12 +521,7 @@ Raw data forwarded to MyAcuRite is not modified.
 Google Settings
 ===============
 
-All analytics and tracking options are off by default.
-
-Analytics
----------
-
-You can add your Google Analytics tracking ID in your site settings.
+WeatherParse has no analytics or tracking code. The only Google setting is reCAPTCHA, which is off by default.
 
 Invisible reCAPTCHA
 -------------------
@@ -536,13 +531,6 @@ reCAPTCHA loads on the authentication and contact forms, and when requesting a p
 - Sign up for a reCAPTCHA account (https://www.google.com/recaptcha).
 - Select Invisible reCAPTCHA when registering your new site.
 - Enter your site key and secret in your site settings.
-
-Matomo
-======
-
-WeatherParse can report tracking data to your own Matomo install (off by default).
-
-Enter your Site ID (https://matomo.org/faq/general/faq_19212) and Matomo install domain in your system settings.
 
 Debug Server
 ============

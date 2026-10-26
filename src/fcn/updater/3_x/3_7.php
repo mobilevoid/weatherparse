@@ -38,11 +38,8 @@ switch ($config->version->app) {
     case '3.6.1':
         $config->version->app = '3.7.0';
         @$config->station->reverse_wind = false;
-        @$config->matomo = (object)array();
-        @$config->matomo->enabled = false;
-        @$config->matomo->site = null;
-        @$config->matomo->domain = null;
-        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Add Wind Direction reversal, Matomo Analytics. Remove WU webcam upload.';
+        // 3.7.0 also added Matomo settings; WeatherParse 4.1.1 removed analytics, so they are no longer created here
+        $notes .= '<li><strong>' . $config->version->app . '</strong> - ' . 'Add Wind Direction reversal. Remove WU webcam upload.';
 
     // Update from 3.7.0 to 3.7.1
     case '3.7.0':

@@ -9,6 +9,36 @@ and this project adheres to Semantic Versioning (http://semver.org/).
 [Unreleased]
 ============
 
+4.1.1 - WeatherParse (unreleased)
+=================================
+
+Removed
+-------
+
+- Google Analytics and Matomo support: settings, page scripts and config template. The updater (4.1.0 -> 4.1.1) and
+  any settings save delete the old keys from config.php. WeatherParse loads no tracking code.
+- The Acuparse site icon and the social sharing photo (an AcuRite product photo with unclear license).
+
+Added
+-----
+
+- Original WeatherParse artwork: site icon (favicon.ico 16/32/48, favicon.svg, apple-touch-icon.png) and a social
+  card (img/social.png) used when no camera is set up. See docs/other/ARTWORK.txt.
+- Weathercloud: optional Software ID setting for an ID that Weathercloud issues.
+
+Changed
+-------
+
+- Weathercloud uploads send software=WeatherParse_v<version> and no longer send the software ID that Weathercloud
+  issued to Acuparse. The upload log row is SQL escaped and a failed request is logged as "No response".
+
+Fixed
+-----
+
+- Dashboard and API: when a table has no row yet (just after midnight, a new install or an offline sensor) the
+  high/low temperature, peak wind and peak gust times are null instead of a 1969 date, and numbers are 0 without
+  PHP warnings. A missing last update row counts as "no data received".
+
 4.1.0 - WeatherParse (unreleased)
 =================================
 

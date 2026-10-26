@@ -52,6 +52,7 @@ Optional Configuration
 - docs/other/NGINX.txt             NGINX Configuration
 - docs/other/BACKUPS.txt           Backups
 - docs/other/TELEMETRY.txt         Telemetry (none) and the update check
+- docs/other/ARTWORK.txt           Site icon and social card
 
 External Uploaders
 ------------------

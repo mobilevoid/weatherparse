@@ -22,8 +22,8 @@ What Changed from Acuparse
 Acuparse 3.x sent a daily "update check" to its own release server that included your operating system, kernel,
 architecture, a unique install ID and your Access/smartHUB MAC address. That code has been removed from WeatherParse.
 
-Optional Analytics
-==================
+No Analytics
+============
 
-Google Analytics and Matomo support remain available for your own website, for your own analytics accounts. Both are
-off by default and send nothing unless you enable and configure them.
+WeatherParse 4.1.1 removed the Google Analytics and Matomo options that Acuparse had. The pages load no tracking
+scripts, and the updater deletes any old analytics settings from config.php.

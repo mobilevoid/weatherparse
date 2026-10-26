@@ -62,7 +62,7 @@ Features
 - Export API with JSON and formatted HTML output for use in external applications.
 - Customizable email outage notifications with Mailgun support.
 - Low battery email alerts for the Access hub, Atlas, Iris and tower sensors, with reminders and an all clear.
-- Optional Matomo and Google Analytics support as well as Google reCAPTCHA form protection. All are off by default.
+- Optional Google reCAPTCHA form protection (off by default). No analytics or tracking code of any kind.
 
 What's Missing
 ==============

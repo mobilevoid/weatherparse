@@ -52,16 +52,21 @@ header('Content-Type: text/html; charset=UTF-8');
         <meta property="og:description" content="<?= $config->site->desc; ?>">
         <meta property="og:url" content="<?= $config->site->hostname; ?>">
         <meta property="og:image"
-              content="<?= ($config->camera->enabled === true) ? '/img/cam/latest.jpg?' . time() : '/img/social.jpg'; ?>">
+              content="<?= ($config->camera->enabled === true) ? '/img/cam/latest.jpg?' . time() : '/img/social.png'; ?>">
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary">
         <meta name="twitter:description" content="<?= $config->site->desc; ?>">
         <meta name="twitter:title" content="<?= $config->site->name; ?>">
         <meta name="twitter:image"
-              content="<?= ($config->camera->enabled === true) ? '/img/cam/latest.jpg?' . time() : '/img/social.jpg'; ?>">
+              content="<?= ($config->camera->enabled === true) ? '/img/cam/latest.jpg?' . time() : '/img/social.png'; ?>">
 
         <title><?= $pageTitle ?></title>
+
+        <!-- Icons -->
+        <link rel="icon" href="/favicon.ico" sizes="48x48">
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <!-- CSS -->
         <?php

@@ -110,19 +110,6 @@ return (object)array(
             'secret' => '', // Recaptcha Secret
             'sitekey' => '', // Recaptcha Sitekey
         ),
-
-        // Analytics
-        'analytics' => (object)array(
-            'enabled' => false, //true or false
-            'id' => '', // Google Analytics ID
-        ),
-    ),
-
-    // Matomo
-    'matomo' => (object)array(
-        'enabled' => false, // Use Matomo? True/False
-        'site' => '', // Matomo Site
-        'domain' => '', // Matomo Domain
     ),
 
     // Mailgun
@@ -173,6 +160,7 @@ return (object)array(
             'key' => '', // Station Key
             'device' => '', // Device ID
             'url' => 'https://api.weathercloud.net/v01/set', // Weathercloud API path
+            'softwareid' => '', // Software ID issued by Weathercloud (optional; leave empty unless Weathercloud gave you one)
         ),
 
         // Windy Settings
