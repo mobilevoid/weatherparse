@@ -67,8 +67,7 @@ jobs:
           echo "$page" | grep -qi 'weatherparse'
           ! echo "$page" | grep -qiE 'Fatal error|Parse error|Warning:'
           # The setup (installer) page is what a fresh install shows; it uses the WeatherParse icons and no tracking
-          curl -sL -o /dev/null -w 'Final URL: %{url_effective}
-' http://localhost:8080/
+          curl -sL -o /dev/null -w 'Final URL: %{url_effective}\n' http://localhost:8080/
           echo "$page" | grep -q 'favicon.svg'
           ! echo "$page" | grep -qiE 'googletagmanager|matomo'
           curl -sf -o /dev/null http://localhost:8080/favicon.svg
