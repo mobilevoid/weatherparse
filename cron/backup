@@ -166,7 +166,15 @@ _backup() {
   # Mark complete, then rotate
   date -Iseconds >"$tmp/.snapshot"
   mv "$tmp" "$DEST/$name" || die "cannot finish snapshot"
-  log "Snapshot $name complete ($(du -sh "$DEST/$name" 2>/dev/null | cut -f1) new data)"
+  # du counts a hard-linked file once, in the first folder named, so listing the previous snapshot first leaves
+  # only the new data on the second line
+  local added
+  if [ -n "$prev" ] && [ -d "$DEST/$prev" ]; then
+    added=$(du -sh "$DEST/$prev" "$DEST/$name" 2>/dev/null | tail -n 1 | cut -f1)
+  else
+    added=$(du -sh "$DEST/$name" 2>/dev/null | cut -f1)
+  fi
+  log "Snapshot $name complete ($added new data)"
 
   local all count
   all=$(snapshots)
