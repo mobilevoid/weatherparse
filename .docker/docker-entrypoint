@@ -28,6 +28,8 @@
 ##
 
 if [ "$1" = 'weatherparse' ]; then
+  CRON_ENV=/etc/weatherparse/cron.env
+
   function _enable_lets_encrypt() {
     if [[ ("$LE_SECURE_WWW" == "yes") ]]; then
       LE_SECURE_DOMAINS=(-d "$LE_FQDN" -d www."$LE_FQDN")
@@ -62,12 +64,53 @@ if [ "$1" = 'weatherparse' ]; then
 
   function _install_system_crontab() {
     WEATHERPARSE_MAIN_CRON='* * * * * /usr/local/bin/php /opt/weatherparse/cron/cron.php > /opt/weatherparse/logs/cron.log 2>&1'
-    WEATHERPARSE_BACKUP_CRON='5 0 * * * /bin/bash /opt/weatherparse/cron/backup > /opt/weatherparse/logs/backup.log 2>&1'
+    # The backup job reads the database settings from a root-only file (see _write_cron_env), not /etc/environment
+    WEATHERPARSE_BACKUP_CRON="5 0 * * * . ${CRON_ENV} && /bin/bash /opt/weatherparse/cron/backup > /opt/weatherparse/logs/backup.log 2>&1"
     # Camera jobs only act once a camera config (cam/config.env, from cam/templates) has been added
     WEATHERPARSE_CAM_CRON='*/10 * * * * [ -f /opt/weatherparse/cam/config.env ] && /bin/bash /opt/weatherparse/cam/webcam > /opt/weatherparse/logs/cam.log 2>&1'
     WEATHERPARSE_CAM_CLEANUP_CRON='15 3 * * * [ -f /opt/weatherparse/cam/config.env ] && /bin/bash /opt/weatherparse/cam/webcam cleanup > /opt/weatherparse/logs/cam-cleanup.log 2>&1'
     printf "%s\n%s\n%s\n%s\n" "$WEATHERPARSE_MAIN_CRON" "$WEATHERPARSE_BACKUP_CRON" "$WEATHERPARSE_CAM_CRON" "$WEATHERPARSE_CAM_CLEANUP_CRON" | crontab -
-    env | grep -E MYSQL\|TZ >>/etc/environment
+    _write_cron_env
+    # /etc/environment is world-readable: only the time zone goes there. Lines from older images that copied the
+    # MYSQL_ variables (passwords included) into it are removed.
+    sed -i '/^MYSQL_/d;/^TZ=/d' /etc/environment
+    if [ -n "${TZ}" ]; then
+      echo "TZ=${TZ}" >>/etc/environment
+    fi
+  }
+
+  # Docker secrets: NAME_FILE=/run/secrets/name reads the value of NAME from that file, so the password does not have
+  # to be in the container's environment settings. Setting both NAME and NAME_FILE is an error.
+  function _file_env() {
+    local var="$1"
+    local fileVar="${1}_FILE"
+    if [ -n "${!var:-}" ] && [ -n "${!fileVar:-}" ]; then
+      echo "ERROR: both $var and $fileVar are set, use only one"
+      exit 1
+    fi
+    if [ -n "${!fileVar:-}" ]; then
+      if [ ! -r "${!fileVar}" ]; then
+        echo "ERROR: $fileVar points to a file that cannot be read"
+        exit 1
+      fi
+      export "$var"="$(<"${!fileVar}")"
+    fi
+    unset "$fileVar"
+  }
+
+  # Settings for the cron jobs, in a file only root can read (mode 600 in a mode 700 folder). The MariaDB root password
+  # is never written; the backup job only needs the WeatherParse database user.
+  function _write_cron_env() {
+    local name value tmp q="'" r="'\\''"
+    install -d -m 700 -o root -g root "$(dirname "$CRON_ENV")"
+    tmp=$(umask 077 && mktemp "${CRON_ENV}.XXXXXX") || exit 1
+    chmod 600 "$tmp"
+    for name in $(compgen -e | grep -E '^(TZ|MYSQL_(HOSTNAME|DATABASE|USER|PASSWORD)|BACKUPS?_[A-Z_]+|KEEP_(SNAPSHOTS|BACKUPS_FOR)|NFS_(EXPORT|OPTIONS)|SMB_(SHARE|CREDENTIALS|OPTIONS)|MOUNT_POINT)$'); do
+      value=${!name}
+      # Single quotes work in the cron shell (sh); a ' inside the value is written as '\''
+      printf "export %s='%s'\n" "$name" "${value//$q/$r}" >>"$tmp"
+    done
+    mv -f "$tmp" "$CRON_ENV"
   }
 
   function _start_system_services() {
@@ -122,13 +165,20 @@ if [ "$1" = 'weatherparse' ]; then
   }
 
   function _check_database_permissions() {
-    if [ -z "$(mysql -h"${MYSQL_HOSTNAME}" -p"${MYSQL_ROOT_PASSWORD}" -e "use mysql; SELECT super_priv FROM user where user='${MYSQL_USER:-weatherparse}' AND super_priv='Y';")" ]; then
+    # MYSQL_PWD keeps the root password off the command line (where ps would show it)
+    if [ -z "$(MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" mysql -h"${MYSQL_HOSTNAME}" -uroot -e "use mysql; SELECT super_priv FROM user where user='${MYSQL_USER:-weatherparse}' AND super_priv='Y';")" ]; then
       echo "Updating DB User Permissions"
-      mysql -h"${MYSQL_HOSTNAME}" -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'; GRANT RELOAD, SUPER, EVENT ON *.* TO '${MYSQL_USER}'; FLUSH PRIVILEGES;" || exit 1
+      MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" mysql -h"${MYSQL_HOSTNAME}" -uroot -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'; GRANT RELOAD, SUPER, EVENT ON *.* TO '${MYSQL_USER}'; FLUSH PRIVILEGES;" || exit 1
     fi
   }
 
   echo "Starting WeatherParse Container"
+
+  echo "Reading SECRETS"
+  for secret in MYSQL_PASSWORD MYSQL_ROOT_PASSWORD; do
+    _file_env "$secret"
+  done
+  echo "DONE: Reading SECRETS"
 
   echo "Configuring Timezone"
   if [ -n "${TZ}" ]; then
@@ -156,7 +206,7 @@ if [ "$1" = 'weatherparse' ]; then
   echo "Check SQL Database"
   if [ -n "${MYSQL_HOSTNAME}" ] && [ -n "${MYSQL_PASSWORD}" ]; then
     echo "Waiting for database to initialize ..."
-    while ! mysqladmin ping -h"${MYSQL_HOSTNAME}" -p"${MYSQL_PASSWORD}" --silent; do
+    while ! MYSQL_PWD="${MYSQL_PASSWORD}" mysqladmin ping -h"${MYSQL_HOSTNAME}" -u"${MYSQL_USER:-weatherparse}" --silent; do
       sleep 1
     done
     echo "Checking SQL PERMISSIONS"
@@ -168,6 +218,10 @@ if [ "$1" = 'weatherparse' ]; then
     echo "ERROR: Missing SQL Environment Variables"
     exit 1
   fi
+
+  # The root password is only needed for the permission check above. Remove it before Apache, cron and the health
+  # check start, so it is not in the environment of any long-running process (PHP's getenv() included).
+  unset MYSQL_ROOT_PASSWORD
 
   echo "Check SSL Certificate"
   if [[ ("$LE_ENABLED" == 1 || "$LE_ENABLED" == "yes") ]]; then

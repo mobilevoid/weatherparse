@@ -41,7 +41,13 @@ include(APP_BASE_PATH . '/fcn/api/auth/getToken.php');
 
 // PHP Info
 if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true && $_SESSION['admin'] === true) {
+    // Environment, with the values of password, secret, key and token variables hidden
     $env = getenv();
+    foreach ($env as $envName => $envValue) {
+        if (preg_match('/PASS|SECRET|KEY|TOKEN|PWD/i', $envName)) {
+            $env[$envName] = '(hidden)';
+        }
+    }
     echo "<h1>WeatherParse Data</h1><h2>Application Data</h2>";
     print("<pre>" . print_r($appInfo, true) . "</pre><h2>Configuration Data</h2>");
     print("<pre>" . print_r($config, true) . "</pre><h2>Environment</h2>");

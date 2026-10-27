@@ -37,6 +37,24 @@ Settings in .env
 
 Never commit .env; it is in .gitignore.
 
+Passwords and Secrets
+---------------------
+
+The container keeps passwords out of world-readable files:
+
+- The cron jobs read their database settings from /etc/weatherparse/cron.env (mode 600, root only, folder mode 700),
+  written at every start. /etc/environment holds only TZ.
+- MYSQL_ROOT_PASSWORD is used once at startup to grant the WeatherParse user its rights, then removed from the
+  environment before Apache, cron and the health check start. It is never written to a file in the container.
+- Database commands get passwords through MYSQL_PWD, not on the command line.
+- The admin "config" API page shows the environment with password, secret, key and token values hidden.
+
+Docker secrets (or any file) can replace the variables: set MYSQL_PASSWORD_FILE and/or MYSQL_ROOT_PASSWORD_FILE to
+the path of a file holding the password (for example /run/secrets/weatherparse_db) instead of MYSQL_PASSWORD and
+MYSQL_ROOT_PASSWORD. Setting both forms of one variable stops the container with an error. Keep such files mode 600
+on the host. With MYSQL_PASSWORD_FILE, run ". /etc/weatherparse/cron.env" in a container shell before running
+cron/backup by hand.
+
 Prebuilt Images
 ===============
 

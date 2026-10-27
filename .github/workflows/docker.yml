@@ -60,6 +60,24 @@ jobs:
           # Camera tools and scripts are in the image
           docker compose exec -T weatherparse sh -c 'command -v ffmpeg && command -v convert && command -v wget && test -f /opt/weatherparse/cam/webcam && test -f /opt/weatherparse/cam/templates/config.env'
           docker compose exec -T weatherparse crontab -l
+          # Secrets: no MYSQL_ lines in the world-readable /etc/environment; the cron settings file is root-only and has
+          # no root password; Apache (PHP) and cron do not have the root password in their environment
+          ! docker compose exec -T weatherparse grep -q '^MYSQL_' /etc/environment
+          docker compose exec -T weatherparse stat -c '%a %U' /etc/weatherparse/cron.env | grep -qx '600 root'
+          docker compose exec -T weatherparse stat -c '%a %U' /etc/weatherparse | grep -qx '700 root'
+          docker compose exec -T weatherparse grep -q '^export MYSQL_PASSWORD=' /etc/weatherparse/cron.env
+          ! docker compose exec -T weatherparse grep -q 'ROOT' /etc/weatherparse/cron.env
+          ! docker compose exec -T -u www-data weatherparse cat /etc/weatherparse/cron.env
+          ! docker compose exec -T weatherparse grep -rqs 'ci-root-pass' /etc /opt/weatherparse/src /opt/weatherparse/logs /var/opt/weatherparse
+          for p in apache2 cron; do
+            ! docker compose exec -T weatherparse sh -c "tr '\0' '\n' </proc/\$(pgrep -o -x $p)/environ" | grep -q 'ci-root-pass'
+          done
+          # The backup cron line works in the cron shell with an empty environment (settings come from cron.env)
+          docker compose exec -T weatherparse sh -c 'line=$(crontab -l | grep "cron/backup" | cut -d" " -f6-); env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin HOME=/root sh -c "$line"; rc=$?; tail -5 /opt/weatherparse/logs/backup.log; exit $rc'
+          docker compose exec -T weatherparse sh -c 'ls -d /var/opt/weatherparse/backups/*/database/*.sql.gz'
+          # Setting both MYSQL_PASSWORD and MYSQL_PASSWORD_FILE stops the container with an error
+          out=$(docker run --rm -e TZ=Etc/UTC -e MYSQL_PASSWORD=x -e MYSQL_PASSWORD_FILE=/etc/hostname weatherparse:test 2>&1 || true)
+          echo "$out" | grep -q 'both MYSQL_PASSWORD and MYSQL_PASSWORD_FILE are set'
           # No local settings or images were baked in
           docker compose exec -T weatherparse sh -c 'test ! -e /opt/weatherparse/src/usr/config.php && test ! -e /opt/weatherparse/cam/config.env'
           # The web installer page loads without PHP errors

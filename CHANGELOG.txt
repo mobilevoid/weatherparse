@@ -38,6 +38,12 @@ Fixed
 - Dashboard and API: when a table has no row yet (just after midnight, a new install or an offline sensor) the
   high/low temperature, peak wind and peak gust times are null instead of a 1969 date, and numbers are 0 without
   PHP warnings. A missing last update row counts as "no data received".
+- Docker: the entrypoint no longer copies the MYSQL_ variables (root password included) into the world-readable
+  /etc/environment. Cron jobs read a root-only /etc/weatherparse/cron.env (600) without the root password; the root
+  password is removed from the environment after the startup permission check, so Apache/PHP never see it; database
+  commands use MYSQL_PWD instead of -p on the command line; MYSQL_PASSWORD_FILE and MYSQL_ROOT_PASSWORD_FILE (Docker
+  secrets) are supported; the admin config API hides password, secret, key and token environment values. The backup
+  cron job now also receives the BACKUP_, KEEP_, NFS_ and SMB_ settings from the container environment.
 
 4.1.0 - WeatherParse (unreleased)
 =================================
