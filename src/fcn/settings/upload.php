@@ -94,7 +94,7 @@
                                             "SELECT * FROM `towers` ORDER BY `arrange`");
                                         while ($row = mysqli_fetch_assoc($result)) {
                                             ?>
-                                            <option value="<?= $row['sensor']; ?>" <?= ($config->upload->sensor->id === $row['sensor']) ? 'selected="selected"' : false; ?>><?= $row['sensor'] . ' - ' . $row['name']; ?>
+                                            <option value="<?= settingsFormValue($row['sensor']); ?>" <?= ($config->upload->sensor->id === $row['sensor']) ? 'selected="selected"' : false; ?>><?= $row['sensor'] . ' - ' . $row['name']; ?>
                                             </option>
                                         <?php } ?>
                                     </select>
@@ -298,7 +298,7 @@
                                                    maxlength="15"
                                                    placeholder="WU Station ID"
                                                 <?= ($config->upload->wu->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->wu->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->wu->id); ?>">
                                             <small id="wu-updates-id-help" class="form-text text-muted">Your <a
                                                         href="https://www.wunderground.com/personal-weather-station/mypws">wunderground</a>
                                                 Station ID
@@ -317,7 +317,7 @@
                                                    placeholder="WU Password"
                                                    maxlength="35"
                                                 <?= ($config->upload->wu->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->wu->password; ?>">
+                                                   value="<?= settingsFormValue($config->upload->wu->password, true); ?>">
                                             <small id="wu-updates-password-help" class="form-text text-muted">Your
                                                 <a
                                                         href="https://www.wunderground.com/personal-weather-station/mypws">wunderground</a>
@@ -335,7 +335,7 @@
                                                        name="upload[wu][url]"
                                                        id="wu-updates-url"
                                                        readonly
-                                                       value="<?= $config->upload->wu->url; ?>">
+                                                       value="<?= settingsFormValue($config->upload->wu->url); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -384,7 +384,7 @@
                                                    maxlength="15"
                                                    placeholder="PWS Station ID"
                                                 <?= ($config->upload->pws->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->pws->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->pws->id); ?>">
                                             <small id="pws-updates-id-help" class="form-text text-muted">Your <a
                                                         href="https://www.pwsweather.com">PWS</a> Station ID
                                             </small>
@@ -401,7 +401,7 @@
                                                    placeholder="PWS API Key"
                                                    maxlength="35"
                                                 <?= ($config->upload->pws->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->pws->key; ?>">
+                                                   value="<?= settingsFormValue($config->upload->pws->key, true); ?>">
                                             <small id="pws-updates-key-help" class="form-text text-muted">
                                                 Your <a href="https://www.pwsweather.com">PWS</a> Password
                                             </small>
@@ -416,7 +416,7 @@
                                                    name="upload[pws][url]"
                                                    id="pws-updates-url"
                                                    readonly
-                                                   value="<?= $config->upload->pws->url; ?>">
+                                                   value="<?= settingsFormValue($config->upload->pws->url); ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -470,7 +470,7 @@
                                                    maxlength="15"
                                                    placeholder="CWOP Station ID"
                                                 <?= ($config->upload->cwop->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->cwop->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->cwop->id); ?>">
                                             <small id="cwop-updates-id-help" class="form-text text-muted">Your
                                                 <a
                                                         href="http://www.wxqa.com/SIGN-UP.html">CWOP</a>
@@ -495,7 +495,7 @@
                                                 foreach ($config->intervals as $interval) {
                                                     if ($interval != '5 minutes') {
                                                         ?>
-                                                        <option value="<?= $interval; ?>" <?= ($config->upload->cwop->interval === $interval) ? 'selected="selected"' : false; ?>><?= $interval; ?></option>
+                                                        <option value="<?= settingsFormValue($interval); ?>" <?= ($config->upload->cwop->interval === $interval) ? 'selected="selected"' : false; ?>><?= $interval; ?></option>
                                                         <?php
                                                     }
                                                 } ?>
@@ -513,7 +513,7 @@
                                                    placeholder="ddmm.hhN/dddmm.hhW"
                                                    maxlength="35"
                                                 <?= ($config->upload->cwop->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->cwop->location; ?>">
+                                                   value="<?= settingsFormValue($config->upload->cwop->location); ?>">
                                             <small id="cwop-updates-location-help" class="form-text text-muted">
                                                 in format <code>ddmm.hhN/dddmm.hhW</code>. See
                                                 <a href="http://boulter.com/gps">Degrees, Minutes & Seconds</a>
@@ -529,7 +529,7 @@
                                                    name="upload[cwop][url]"
                                                    id="cwop-updates-url"
                                                    readonly
-                                                   value="<?= $config->upload->cwop->url; ?>">
+                                                   value="<?= settingsFormValue($config->upload->cwop->url); ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -578,7 +578,7 @@
                                                    maxlength="35"
                                                    placeholder="ID"
                                                 <?= ($config->upload->wc->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->wc->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->wc->id); ?>">
                                             <small id="wc-updates-id-help" class="form-text text-muted">Your <a
                                                         href="https://app.weathercloud.net/devices">Weathercloud</a>
                                                 API ID
@@ -596,7 +596,7 @@
                                                    placeholder="Key"
                                                    maxlength="35"
                                                 <?= ($config->upload->wc->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->wc->key; ?>">
+                                                   value="<?= settingsFormValue($config->upload->wc->key, true); ?>">
                                             <small id="wc-updates-key-help" class="form-text text-muted">Your <a
                                                         href="https://app.weathercloud.net/devices">Weathercloud</a>
                                                 API Key
@@ -614,7 +614,7 @@
                                                    maxlength="35"
                                                    placeholder="dxxxxxxxxxx"
                                                 <?= ($config->upload->wc->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->wc->device; ?>">
+                                                   value="<?= settingsFormValue($config->upload->wc->device); ?>">
                                             <small id="wc-updates-device-help" class="form-text text-muted">Your <a
                                                         href="https://app.weathercloud.net/">Weathercloud</a>
                                                 device ID (Begins with dxxx...)
@@ -630,7 +630,7 @@
                                                    name="upload[wc][url]"
                                                    id="wc-updates-url"
                                                    readonly
-                                                   value="<?= $config->upload->wc->url; ?>">
+                                                   value="<?= settingsFormValue($config->upload->wc->url); ?>">
                                         </div>
                                     </div>
                                     <div class="row mt-2">
@@ -699,7 +699,7 @@
                                                    maxlength="35"
                                                    placeholder="Station ID"
                                                 <?= ($config->upload->windy->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->windy->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->windy->id); ?>">
                                             <small id="windy-updates-id-help" class="form-text text-muted">From <a
                                                         href="https://stations.windy.com/stations">Windy My Stations</a>, station details</small>
                                         </div>
@@ -716,7 +716,7 @@
                                                        maxlength="150"
                                                        placeholder="Station password"
                                                     <?= ($config->upload->windy->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                       value="<?= $config->upload->windy->key; ?>">
+                                                       value="<?= settingsFormValue($config->upload->windy->key, true); ?>">
                                                 <small id="windy-updates-key-help" class="form-text text-muted">My Stations &gt; station &gt;
                                                     Connection (Windy Stations API v2)
                                                 </small>
@@ -731,7 +731,7 @@
                                                        name="upload[windy][url]"
                                                        id="windy-updates-url"
                                                        disabled="disabled"
-                                                       value="<?= $config->upload->windy->url; ?>">
+                                                       value="<?= settingsFormValue($config->upload->windy->url); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -780,7 +780,7 @@
                                                    maxlength="15"
                                                    placeholder="Station UID"
                                                 <?= ($config->upload->windguru->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->windguru->uid; ?>">
+                                                   value="<?= settingsFormValue($config->upload->windguru->uid); ?>">
                                             <small id="windguru-updates-uid-help"
                                                    class="form-text text-muted">Your
                                                 <a
@@ -800,7 +800,7 @@
                                                    placeholder="Password"
                                                    maxlength="35"
                                                 <?= ($config->upload->windguru->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->windguru->password; ?>">
+                                                   value="<?= settingsFormValue($config->upload->windguru->password, true); ?>">
                                             <small id="windguru-updates-password-help"
                                                    class="form-text text-muted">Your Password
                                             </small>
@@ -817,7 +817,7 @@
                                                    maxlength="5"
                                                    placeholder="Station ID"
                                                 <?= ($config->upload->windguru->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->windguru->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->windguru->id); ?>">
                                             <small id="windguru-updates-id-help"
                                                    class="form-text text-muted"><code>http://windguru.cz/station/{ID}</code></small>
                                         </div>
@@ -831,7 +831,7 @@
                                                    name="upload[windguru][url]"
                                                    id="windguru-updates-url"
                                                    disabled="disabled"
-                                                   value="<?= $config->upload->windguru->url; ?>">
+                                                   value="<?= settingsFormValue($config->upload->windguru->url); ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -883,7 +883,7 @@
                                                    maxlength="24"
                                                    placeholder="Station ID"
                                                 <?= ($config->upload->openweather->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->openweather->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->openweather->id); ?>">
                                             <small id="openweather-updates-uid-help" class="form-text text-muted">Your
                                                 <a href="https://openweathermap.org/stations#steps">OpenWeather</a>
                                                 Station ID.<br>See <a
@@ -902,7 +902,7 @@
                                                    placeholder="API Key"
                                                    maxlength="32"
                                                 <?= ($config->upload->openweather->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->openweather->key; ?>">
+                                                   value="<?= settingsFormValue($config->upload->openweather->key, true); ?>">
                                             <small id="openweather-updates-key-help"
                                                    class="form-text text-muted">Your API Key
                                             </small>
@@ -917,7 +917,7 @@
                                                    name="upload[openweather][url]"
                                                    id="openweather-updates-url"
                                                    disabled="disabled"
-                                                   value="<?= $config->upload->openweather->url; ?>">
+                                                   value="<?= settingsFormValue($config->upload->openweather->url); ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -967,7 +967,7 @@
                                                    maxlength="15"
                                                    placeholder="Station ID"
                                                 <?= ($config->upload->generic->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->generic->id; ?>">
+                                                   value="<?= settingsFormValue($config->upload->generic->id); ?>">
                                             <small id="generic-updates-id-help" class="form-text text-muted">Your
                                                 Station ID, if required.
                                             </small>
@@ -985,7 +985,7 @@
                                                    placeholder="Password"
                                                    maxlength="35"
                                                 <?= ($config->upload->generic->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->generic->password; ?>">
+                                                   value="<?= settingsFormValue($config->upload->generic->password, true); ?>">
                                             <small id="generic-updates-password-help"
                                                    class="form-text text-muted">Your Password, if required.
                                             </small>
@@ -1000,7 +1000,7 @@
                                                    name="upload[generic][url]"
                                                    id="generic-updates-url"
                                                 <?= ($config->upload->generic->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                                   value="<?= $config->upload->generic->url; ?>"
+                                                   value="<?= settingsFormValue($config->upload->generic->url); ?>"
                                                    placeholder="Upload URL">
                                         </div>
                                     </div>
@@ -1071,7 +1071,7 @@
                                            placeholder="mqtt.example.com"
                                            required="required"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->upload->mqtt->server; ?>">
+                                           value="<?= settingsFormValue($config->upload->mqtt->server); ?>">
                                     <small id="mqtt-upload-server-help" class="form-text text-muted">Your MQTT Server
                                         Hostname/IP. (Required)
                                     </small>
@@ -1086,7 +1086,7 @@
                                            name="upload[mqtt][username]"
                                            id="mqtt-upload-username"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->upload->mqtt->username; ?>">
+                                           value="<?= settingsFormValue($config->upload->mqtt->username, true); ?>">
                                     <small id="mqtt-upload-username-help" class="form-text text-muted">Your MQTT Server
                                         Username. (Optional)
                                     </small>
@@ -1101,7 +1101,7 @@
                                            name="upload[mqtt][password]"
                                            id="mqtt-upload-password"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->upload->mqtt->password; ?>">
+                                           value="<?= settingsFormValue($config->upload->mqtt->password, true); ?>">
                                     <small id="mqtt-upload-password-help" class="form-text text-muted">Your MQTT Server
                                         Password. (Optional)
                                     </small>
@@ -1120,7 +1120,7 @@
                                            placeholder="1883"
                                            maxlength="32"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->upload->mqtt->port; ?>">
+                                           value="<?= settingsFormValue($config->upload->mqtt->port); ?>">
                                     <small id="mqtt-upload-port-help"
                                            class="form-text text-muted">MQTT Server Port.<br>Default = <code>1883</code>.
                                     </small>
@@ -1137,7 +1137,7 @@
                                            maxlength="24"
                                            placeholder="weatherparse"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->upload->mqtt->client; ?>">
+                                           value="<?= settingsFormValue($config->upload->mqtt->client); ?>">
                                     <small id="mqtt-upload-client-help" class="form-text text-muted">ClientID used to
                                         connect to your server. (Optional)
                                     </small>
@@ -1153,7 +1153,7 @@
                                            id="mqtt-upload-topic"
                                            placeholder="weatherparse"
                                         <?= ($config->upload->mqtt->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->upload->mqtt->topic; ?>">
+                                           value="<?= settingsFormValue($config->upload->mqtt->topic); ?>">
                                     <small id="mqtt-upload-topic-help" class="form-text text-muted">The main topic data
                                         will be published to.<br>Default = <code>weatherparse</code>.
                                     </small>

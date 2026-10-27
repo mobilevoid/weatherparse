@@ -89,7 +89,7 @@
                                            id="station-access-mac" placeholder="Access MAC"
                                         <?= $config->station->device === 1 ? 'disabled="disabled"' : false; ?>
                                         <?= !isset($config->station->device) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->station->access_mac; ?>">
+                                           value="<?= settingsFormValue($config->station->access_mac); ?>">
                                     <small id="station-sensor-atlas-help" class="form-text text-muted">Enter ONLY the
                                         digits. No Colons, Spaces, or Dashes.</small>
                                 </div>
@@ -104,7 +104,7 @@
                                            maxlength="12"
                                         <?= $config->station->device === 0 ? 'disabled="disabled"' : false; ?>
                                         <?= !isset($config->station->device) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->station->hub_mac; ?>">
+                                           value="<?= settingsFormValue($config->station->hub_mac); ?>">
                                     <small id="station-sensor-atlas-help" class="form-text text-muted">Enter ONLY the
                                         digits. No Colons, Spaces, or Dashes.</small>
                                 </div>
@@ -167,7 +167,7 @@
                                            title="8 Digits including leading 0's"
                                         <?= $config->station->primary_sensor === 1 ? 'disabled="disabled"' : false; ?>
                                         <?= !isset($config->station->primary_sensor) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->station->sensor_atlas; ?>">
+                                           value="<?= settingsFormValue($config->station->sensor_atlas); ?>">
                                     <small id="station-sensor-atlas-help" class="form-text text-muted">8
                                         Digits including leading 0's
                                     </small>
@@ -186,7 +186,7 @@
                                            title="8 Digits including leading 0's"
                                         <?= $config->station->primary_sensor === 0 ? 'disabled="disabled"' : false; ?>
                                         <?= !isset($config->station->primary_sensor) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->station->sensor_iris; ?>">
+                                           value="<?= settingsFormValue($config->station->sensor_iris); ?>">
                                     <small id="station-sensor-iris-help" class="form-text text-muted">8
                                         Digits including leading 0's
                                     </small>
@@ -378,7 +378,7 @@
                                                    name="station[baro_offset]"
                                                    id="station-baro-offset" step=".01"
                                                    placeholder="Barometer Offset"
-                                                   value="<?= $config->station->baro_offset; ?>">
+                                                   value="<?= settingsFormValue($config->station->baro_offset); ?>">
                                             <small id="station-sensor-baro-offset-help"
                                                    class="form-text text-muted">
                                                 inHg. Adjust this as required to match the offset for your

@@ -52,7 +52,10 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         }
 
         // Do some quick input filtering
-        $_POST = legacySanitizeArray(filter_input_array(INPUT_POST, FILTER_UNSAFE_RAW) ?: []);
+        // (passwords and keys are kept exactly as typed, see settingsSecretFields())
+        $rawPost = filter_input_array(INPUT_POST, FILTER_UNSAFE_RAW) ?: [];
+        $_POST = settingsRestoreSecrets(legacySanitizeArray($rawPost), $rawPost);
+        unset($rawPost);
 
         //Database
         $config->mysql->host = isset($_POST['mysql']['host']) ? $_POST['mysql']['host'] : ($config->mysql->host ?? null);

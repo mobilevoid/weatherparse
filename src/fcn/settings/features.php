@@ -87,7 +87,7 @@
                                            id="camera-text"
                                         <?= ($config->camera->enabled === false) ? 'disabled="disabled"' : false; ?>
                                            placeholder="Image updated every XX minutes."
-                                           value="<?= $config->camera->text; ?>">
+                                           value="<?= settingsFormValue($config->camera->text); ?>">
                                     <small id="camera-text-help" class="form-text text-muted">Text under live camera
                                         image</small>
                                 </div>
@@ -265,7 +265,7 @@
                                             class="form-select">
                                         <?php
                                         foreach ($config->intervals as $interval) { ?>
-                                            <option value="<?= $interval; ?>" <?= ($config->outage_alert->offline_for === $interval) ? 'selected="selected"' : false; ?>><?= $interval; ?></option>
+                                            <option value="<?= settingsFormValue($interval); ?>" <?= ($config->outage_alert->offline_for === $interval) ? 'selected="selected"' : false; ?>><?= $interval; ?></option>
                                             <?php
                                         } ?>
                                     </select>
@@ -281,7 +281,7 @@
                                             class="form-select">
                                         <?php
                                         foreach ($config->intervals as $interval) { ?>
-                                            <option value="<?= $interval; ?>" <?= ($config->outage_alert->interval === $interval) ? 'selected="selected"' : false; ?>><?= $interval; ?></option>
+                                            <option value="<?= settingsFormValue($interval); ?>" <?= ($config->outage_alert->interval === $interval) ? 'selected="selected"' : false; ?>><?= $interval; ?></option>
                                             <?php
                                         } ?>
                                     </select>
@@ -364,7 +364,7 @@
                                                id="battery-alert-reminder-hours" min="0"
                                                max="<?= BATTERY_ALERT_MAX_REMINDER_HOURS; ?>" step="1"
                                             <?= ($batteryAlert->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                               value="<?= $batteryAlert->reminder_hours; ?>">
+                                               value="<?= settingsFormValue($batteryAlert->reminder_hours); ?>">
                                         <span class="input-group-text">hours</span>
                                     </div>
                                     <small id="battery-alert-reminder-hours-help" class="form-text text-muted">How
@@ -455,7 +455,7 @@
                                            id="recaptcha-sitekey"
                                            placeholder="Site Key"
                                         <?= ($config->google->recaptcha->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->google->recaptcha->sitekey; ?>">
+                                           value="<?= settingsFormValue($config->google->recaptcha->sitekey); ?>">
                                     <small id="recaptcha-sitekey-help" class="form-text text-muted">Your <a
                                                 href="https://www.google.com/recaptcha/admin">reCAPTCHA API</a> Site Key</small>
                                 </div>
@@ -470,7 +470,7 @@
                                            id="recaptcha-secret"
                                            placeholder="Secret Key"
                                         <?= ($config->google->recaptcha->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                           value="<?= $config->google->recaptcha->secret; ?>">
+                                           value="<?= settingsFormValue($config->google->recaptcha->secret, true); ?>">
                                     <small id="recaptcha-secret-help" class="form-text text-muted">
                                         Your <a href="https://www.google.com/recaptcha/admin">reCAPTCHA API</a> Secret
                                         Key</small>
@@ -524,7 +524,7 @@
                                    id="mailgun-secret"
                                    placeholder="API Key"
                                 <?= ($config->mailgun->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                   value="<?= $config->mailgun->secret; ?>">
+                                   value="<?= settingsFormValue($config->mailgun->secret, true); ?>">
                             <small id="recaptcha-secret-help" class="form-text text-muted">Your Mailgun API Key</small>
                         </div>
                     </div>
@@ -538,7 +538,7 @@
                                    id="mailgun-domain"
                                    placeholder="example.com"
                                 <?= ($config->mailgun->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                   value="<?= $config->mailgun->domain; ?>">
+                                   value="<?= settingsFormValue($config->mailgun->domain); ?>">
                             <small id="mailgun-domain-help" class="form-text text-muted">Your Mailgun
                                 Domain</small>
                         </div>

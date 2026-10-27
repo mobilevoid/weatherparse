@@ -68,6 +68,77 @@ if (!function_exists('mysqlClientCommand')) {
     }
 }
 
+if (!function_exists('settingsSecretFields')) {
+    /**
+     * Settings that are passwords, keys or secrets. The settings form shows them escaped and saves them exactly as
+     * typed (no tag stripping or quote encoding), so a password with " < > & ' survives a save unchanged.
+     * @return array[] Paths into the submitted settings form / config object
+     */
+    function settingsSecretFields(): array
+    {
+        return [
+            ['mysql', 'password'],
+            ['google', 'recaptcha', 'secret'],
+            ['mailgun', 'secret'],
+            ['upload', 'wu', 'password'],
+            ['upload', 'pws', 'key'],
+            ['upload', 'wc', 'key'],
+            ['upload', 'windy', 'key'],
+            ['upload', 'windguru', 'password'],
+            ['upload', 'openweather', 'key'],
+            ['upload', 'generic', 'password'],
+            ['upload', 'mqtt', 'username'],
+            ['upload', 'mqtt', 'password'],
+        ];
+    }
+
+    /**
+     * Puts the raw submitted value of every secret setting back into a sanitized form array.
+     * @param array $sanitized The form after legacySanitizeArray()
+     * @param array $raw The form as submitted
+     */
+    function settingsRestoreSecrets(array $sanitized, array $raw): array
+    {
+        foreach (settingsSecretFields() as $path) {
+            $value = $raw;
+            foreach ($path as $key) {
+                if (!is_array($value) || !array_key_exists($key, $value)) {
+                    continue 2;
+                }
+                $value = $value[$key];
+            }
+            if (!is_string($value)) {
+                continue;
+            }
+            $target = &$sanitized;
+            foreach ($path as $key) {
+                if (!isset($target[$key]) || !is_array($target[$key])) {
+                    $target[$key] = [];
+                }
+                $target = &$target[$key];
+            }
+            $target = $value;
+            unset($target);
+        }
+        return $sanitized;
+    }
+
+    /**
+     * A config value for an HTML value="" attribute. Ordinary settings were stored with quotes as entities (&#39;),
+     * which are left as they are so they show as the character and save back the same. Secrets are stored raw, so
+     * every character is escaped.
+     * @param mixed $value The setting
+     * @param bool $secret True for a password/key (see settingsSecretFields)
+     */
+    function settingsFormValue($value, bool $secret = false): string
+    {
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        }
+        return htmlspecialchars((string)($value ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8', $secret);
+    }
+}
+
 if (!function_exists('legacySanitizeString')) {
     /**
      * What FILTER_SANITIZE_STRING did (deprecated in PHP 8.1): strip tags and encode quotes.

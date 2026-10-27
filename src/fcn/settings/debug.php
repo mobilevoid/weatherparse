@@ -81,7 +81,7 @@
                                    id="debug-server-url"
                                    placeholder="www.example.com"
                                 <?= ($config->debug->server->enabled === false) ? 'disabled="disabled"' : false; ?>
-                                   value="<?= $config->debug->server->url; ?>">
+                                   value="<?= settingsFormValue($config->debug->server->url); ?>">
                             <small id="debug-server-url-help" class="form-text text-muted">
                                 Hostname/IP only. No HTTP/HTTPS!
                             </small>

@@ -57,7 +57,7 @@
                                    id="mysql-host"
                                    placeholder="localhost"
                                    maxlength="35"
-                                   value="<?= $config->mysql->host; ?>">
+                                   value="<?= settingsFormValue($config->mysql->host); ?>">
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -70,7 +70,7 @@
                                    id="mysql-database"
                                    placeholder="weatherparse"
                                    maxlength="35"
-                                   value="<?= $config->mysql->database; ?>">
+                                   value="<?= settingsFormValue($config->mysql->database); ?>">
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -83,7 +83,7 @@
                                    id="mysql-username"
                                    placeholder="weatherparse.dbadmin"
                                    maxlength="35"
-                                   value="<?= $config->mysql->username; ?>">
+                                   value="<?= settingsFormValue($config->mysql->username); ?>">
                         </div>
                     </div>
                     <div class="row mt-2">
@@ -96,7 +96,7 @@
                                    id="mysql-password"
                                    placeholder="Password"
                                    maxlength="32"
-                                   value="<?= $config->mysql->password; ?>">
+                                   value="<?= settingsFormValue($config->mysql->password, true); ?>">
                         </div>
                     </div>
                 </div>

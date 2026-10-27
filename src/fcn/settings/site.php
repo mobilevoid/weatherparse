@@ -56,7 +56,7 @@
                                 <div class="col">
                                     <input type="text" class="form-control" name="site[name]"
                                            id="site-name" placeholder="Station Name" maxlength="32"
-                                           value="<?= $config->site->name; ?>" required>
+                                           value="<?= settingsFormValue($config->site->name); ?>" required>
                                 </div>
                             </div>
                             <div class="row mt-2">
@@ -67,7 +67,7 @@
                                     <input type="text" class="form-control" name="site[location]"
                                            id="site-location" placeholder="Station Location"
                                            maxlength="32"
-                                           value="<?= $config->site->location; ?>" required>
+                                           value="<?= settingsFormValue($config->site->location); ?>" required>
                                 </div>
                             </div>
                             <div class="row mt-2">
@@ -78,7 +78,7 @@
                                     <input type="text" class="form-control" name="site[desc]"
                                            id="site-desc" placeholder="Station Description"
                                            maxlength="100"
-                                           value="<?= $config->site->desc; ?>" required>
+                                           value="<?= settingsFormValue($config->site->desc); ?>" required>
                                 </div>
                             </div>
                             <div class="row mt-2">
@@ -89,7 +89,7 @@
                                     <input type="text" class="form-control" name="site[hostname]"
                                            id="site-hostname" placeholder="www.example.com"
                                            maxlength="32" aria-describedby="hostname-help"
-                                           value="<?= $config->site->hostname; ?>" required>
+                                           value="<?= settingsFormValue($config->site->hostname); ?>" required>
                                     <small id="hostname-help" class="form-text text-muted">FQDN or IP Address</small>
                                 </div>
                             </div>
@@ -101,7 +101,7 @@
                                     <input type="text" class="form-control" name="site[email]"
                                            id="site-email" aria-describedby="email-help"
                                            placeholder="weather@example.com" maxlength="32"
-                                           value="<?= $config->site->email; ?>" required>
+                                           value="<?= settingsFormValue($config->site->email); ?>" required>
                                 </div>
                             </div>
                             <div class="row mt-2">
@@ -116,7 +116,7 @@
                                         $tzlist = DateTimeZone::listIdentifiers();
                                         foreach ($tzlist as $tz) {
                                             ?>
-                                            <option value="<?= $tz; ?>" <?= ($config->site->timezone === $tz) ? 'selected="selected"' : false; ?>><?= $tz; ?></option>
+                                            <option value="<?= settingsFormValue($tz); ?>" <?= ($config->site->timezone === $tz) ? 'selected="selected"' : false; ?>><?= $tz; ?></option>
                                             <?php
                                         } ?>
                                     </select>
@@ -130,7 +130,7 @@
                                     <input type="number" step=".001" class="form-control"
                                            name="site[lat]" id="site-lat" aria-describedby="lat-help"
                                            placeholder="Station Latitude" max="90" min="-90"
-                                           value="<?= $config->site->lat; ?>" required>
+                                           value="<?= settingsFormValue($config->site->lat); ?>" required>
                                     <small id="lat-help" class="form-text text-muted">Decimal Format (Eg.
                                         39.764)</small>
                                 </div>
@@ -143,7 +143,7 @@
                                     <input type="number" step=".001" class="form-control"
                                            name="site[long]" id="site-long" aria-describedby="long-help"
                                            placeholder="Station Longitude" max="180" min="-180"
-                                           value="<?= $config->site->long; ?>" required>
+                                           value="<?= settingsFormValue($config->site->long); ?>" required>
                                     <small id="long-help" class="form-text text-muted">Decimal Format (Eg. -104.995)
                                     </small>
                                 </div>
@@ -166,7 +166,7 @@
                                         <?php
                                         foreach ($themes as $theme) {
                                             ?>
-                                            <option value="<?= $theme; ?>" <?= ($config->site->theme === $theme) ? 'selected="selected"' : false; ?>><?= ucfirst($theme); ?></option>
+                                            <option value="<?= settingsFormValue($theme); ?>" <?= ($config->site->theme === $theme) ? 'selected="selected"' : false; ?>><?= ucfirst($theme); ?></option>
                                             <?php
                                         } ?>
                                     </select>
@@ -271,7 +271,7 @@
                                            id="header-display-date"
                                            aria-describedby="header-display-date-help"
                                            placeholder="l, j F Y G:i:s T" maxlength="25"
-                                           value="<?= $config->site->display_date; ?>" required>
+                                           value="<?= settingsFormValue($config->site->display_date); ?>" required>
                                     <small id="header-display-date-help" class="form-text text-muted">Default =
                                         <code>l, j F Y G:i:s T</code></small>
                                 </div>
@@ -286,7 +286,7 @@
                                            id="dashboard-display-time"
                                            aria-describedby="dashboard-display-time-help"
                                            placeholder="H:i" maxlength="10"
-                                           value="<?= $config->site->dashboard_display_time; ?>" required>
+                                           value="<?= settingsFormValue($config->site->dashboard_display_time); ?>" required>
                                     <small id="dashboard-display-time-help" class="form-text text-muted">Default =
                                         <code>H:i</code></small>
                                 </div>
@@ -301,7 +301,7 @@
                                            id="dashboard-display-date"
                                            aria-describedby="dashboard-display-date-help"
                                            placeholder="j M @ H:i" maxlength="15"
-                                           value="<?= $config->site->dashboard_display_date; ?>" required>
+                                           value="<?= settingsFormValue($config->site->dashboard_display_date); ?>" required>
                                     <small id="dashboard-display-date-help" class="form-text text-muted">Default =
                                         <code>j M @
                                             H:i</code></small>
@@ -318,7 +318,7 @@
                                            id="dashboard-display-date_full"
                                            aria-describedby="dashboard-display-date-full-help"
                                            placeholder="j M Y @ H:i" maxlength="20"
-                                           value="<?= $config->site->dashboard_display_date_full; ?>" required>
+                                           value="<?= settingsFormValue($config->site->dashboard_display_date_full); ?>" required>
                                     <small id="dashboard-display-date-full-help" class="form-text text-muted">Default
                                         =
                                         <code>j M Y @ H:i</code></small>
@@ -334,7 +334,7 @@
                                            id="date_api_json"
                                            aria-describedby="date-api-json-help"
                                            placeholder="c" maxlength="25"
-                                           value="<?= $config->site->date_api_json; ?>" required>
+                                           value="<?= settingsFormValue($config->site->date_api_json); ?>" required>
                                     <small id="date-api-json-help" class="form-text text-muted">Default =
                                         <code>c</code></small>
                                 </div>
