@@ -299,8 +299,12 @@
                         <div class="col">
                             <h3>Temperature Spike Filter</h3>
                             <p>Drops impossible temperatures from the Iris/Atlas (below -60&deg;F, above 140&deg;F, or a jump
-                                larger than the limit below per 5 minutes). The other readings in the same report are kept.
-                                A failing temperature element often reports 158&deg;F.</p>
+                                larger than the limit below per 5 minutes, compared with the last few stored readings). The other
+                                readings in the same report are kept. A failing temperature element often reports 158&deg;F.</p>
+                            <p>A wet or failing element can also report hot, saturated air that cannot exist. When the dew point
+                                worked out from a report's temperature and humidity is above the limit below, both the temperature
+                                and the humidity of that report are dropped. 95&deg;F is above anything ever measured; a lower value
+                                that fits your climate (for example 85&deg;F on the Gulf Coast) catches more bad readings.</p>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -325,6 +329,14 @@
                             <input type="number" class="form-control" name="station[spike_max_change]"
                                    id="station-spike-max-change" min="1" max="50" step="0.5"
                                    value="<?= htmlspecialchars((string)($config->station->spike_max_change ?? 10)); ?>">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-auto col-form-label" for="station-spike-max-dewpoint">Highest possible dew point (&deg;F)</label>
+                        <div class="col-3">
+                            <input type="number" class="form-control" name="station[spike_max_dewpoint]"
+                                   id="station-spike-max-dewpoint" min="60" max="100" step="1"
+                                   value="<?= htmlspecialchars((string)($config->station->spike_max_dewpoint ?? 95)); ?>">
                         </div>
                     </div>
                     <hr>

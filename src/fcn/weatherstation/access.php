@@ -150,12 +150,15 @@ if ($_GET['mt'] === '5N1' || $_GET['mt'] === 'Iris') {
 
         // Insert Iris Readings into DB
         // Temperature only when the spike filter accepts it (other sensors are stored either way)
-        $temperatureSql = temperatureReadingAccepted($conn, $config, (float)$tempF, $timestamp, 'IRIS')
+        // Humidity unless it and the temperature together are impossible (same element; see readingFilter.php)
+        $humiditySql = humidityReadingAccepted($config, (float)$tempF, (int)$humidity, 'IRIS')
+            ? "INSERT INTO `humidity` (`relH`, `timestamp`, `device`, `source`) VALUES ('$humidity', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `relH` = '$humidity', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';" : '';
+        $temperatureSql = temperatureReadingAccepted($conn, $config, (float)$tempF, $timestamp, 'IRIS', $humidity)
             ? "INSERT INTO `temperature` (`tempF`, `heatindex`, `feelslike`, `windchill`, `dewptf`, `timestamp`, `device`, `source`) VALUES ('$tempF', '$heatIndex', '$feelsLike', '$windChill', '$dewptF', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `tempF` = '$tempF', `heatindex` = '$heatIndex', `feelslike` = '$feelsLike', `windchill` = '$windChill', `dewptf` = '$dewptF', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';" : '';
         $sql = "INSERT INTO `windspeed` (`speedMPH`, `gustMPH`, `averageMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH', '$windGustMPH', '$windSpeedAvgMPH', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `speedMPH` = '$windSpeedMPH', `gustMPH` = '$windGustMPH', `averageMPH` = '$windSpeedAvgMPH', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
             {$temperatureSql}
             INSERT INTO `winddirection` (`degrees`, `gust`, `timestamp`, `device`, `source`) VALUES ('$windDirection', '$windGustDirection', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `degrees` = '$windDirection', `gust` = '$windGustDirection', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
-            INSERT INTO `humidity` (`relH`, `timestamp`, `device`, `source`) VALUES ('$humidity', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `relH` = '$humidity', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
+            {$humiditySql}
             UPDATE `rainfall` SET `rainin`='$rainIN', `last_update`='$timestamp', `device`='$device', `source`='$source';
             INSERT INTO `dailyrain` (`dailyrainin`, `date`, `last_update`, `device`, `source`) VALUES ('$dailyRainIN', '$date', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `dailyrainin`='$dailyRainIN', `last_update`='$timestamp', `device`='$device', `source`='$source';
             INSERT INTO `pressure` (`inhg`, `timestamp`, `device`, `source`) VALUES ('$baromin', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `inhg` = '$baromin', `timestamp` = '$timestamp', `device` = '$device', `source` = '$source';
@@ -291,12 +294,15 @@ elseif ($_GET['mt'] === 'Atlas') {
 
         // Insert Atlas readings into DB
         // Temperature only when the spike filter accepts it (other sensors are stored either way)
-        $temperatureSql = temperatureReadingAccepted($conn, $config, (float)$tempF, $timestamp, 'ATLAS')
+        // Humidity unless it and the temperature together are impossible (same element; see readingFilter.php)
+        $humiditySql = humidityReadingAccepted($config, (float)$tempF, (int)$humidity, 'ATLAS')
+            ? "INSERT INTO `humidity` (`relH`, `timestamp`, `device`, `source`) VALUES ('$humidity', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `relH`='$humidity', `timestamp`='$timestamp', `device`='$device', `source`='$source';" : '';
+        $temperatureSql = temperatureReadingAccepted($conn, $config, (float)$tempF, $timestamp, 'ATLAS', $humidity)
             ? "INSERT INTO `temperature` (`tempF`, `heatindex`, `feelslike`, `windchill`, `dewptf`, `timestamp`, `device`, `source`) VALUES ('$tempF', '$heatIndex', '$feelsLike', '$windChill', '$dewptF', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `tempF`='$tempF', `heatindex`='$heatIndex', `feelslike`='$feelsLike', `windchill`='$windChill', `dewptf`='$dewptF', `timestamp`='$timestamp', `device`='$device', `source`='$source';" : '';
         $sql = "INSERT INTO `windspeed` (`speedMPH`, `gustMPH`, `averageMPH`, `timestamp`, `device`, `source`) VALUES ('$windSpeedMPH', '$windGustMPH', '$windSpeedAvgMPH', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `speedMPH`='$windSpeedMPH', `gustMPH`='$windGustMPH', `averageMPH`='$windSpeedAvgMPH', `timestamp`='$timestamp', `device`='$device', `source`='$source';
             {$temperatureSql}
             INSERT INTO `winddirection` (`degrees`, `gust`, `timestamp`, `device`, `source`) VALUES ('$windDirection', '$windGustDirection', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `degrees`='$windDirection', `gust`='$windGustDirection', `timestamp`='$timestamp', `device`='$device', `source`='$source';
-            INSERT INTO `humidity` (`relH`, `timestamp`, `device`, `source`) VALUES ('$humidity', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `relH`='$humidity', `timestamp`='$timestamp', `device`='$device', `source`='$source';
+            {$humiditySql}
             UPDATE `rainfall` SET `rainin`='$rainIN', `last_update`='$timestamp', `device`='$device', `source`='$source';
             INSERT INTO `dailyrain` (`dailyrainin`, `date`, `last_update`, `device`, `source`) VALUES ('$dailyRainIN', '$date', '$timestamp', '$device', '$source') ON DUPLICATE KEY UPDATE `dailyrainin`='$dailyRainIN', `last_update`='$timestamp', `device`='$device', `source`='$source';
             INSERT INTO `uvindex` (`uvindex`, `timestamp`) VALUES('$uvindex', '$timestamp') ON DUPLICATE KEY UPDATE `uvindex`='$uvindex', `timestamp`='$timestamp';

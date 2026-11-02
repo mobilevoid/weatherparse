@@ -52,6 +52,7 @@ return (object)array(
         'filter_access' => true, // Filter out of range Access readings
         'spike_filter' => true, // Drop impossible Iris/Atlas temperatures (see fcn/weatherstation/readingFilter.php)
         'spike_max_change' => 10, // Largest temperature change (F) allowed per 5 minutes
+        'spike_max_dewpoint' => 95, // Temperature and humidity are dropped when their dew point (F) is above this
         'maintenance' => false, // Sensor being serviced: record locally, upload nothing
         'reverse_wind' => false, // Reverse Wind direction readings for Southern Hemisphere
         'realtime' => false, // Enable Realtime RTL Data

@@ -47,6 +47,14 @@ Fixed
   commands use MYSQL_PWD instead of -p on the command line; MYSQL_PASSWORD_FILE and MYSQL_ROOT_PASSWORD_FILE (Docker
   secrets) are supported; the admin config API hides password, secret, key and token environment values. The backup
   cron job now also receives the BACKUP_, KEEP_, NFS_ and SMB_ settings from the container environment.
+- Temperature spike filter: it compared a reading with the median of only the readings stored in the last 30
+  minutes, and the allowed change grew with every minute since the newest one. After a gap, one bad reading got in,
+  became the reference, and good readings were then dropped (for example 79.9 F dropped against a "median" of
+  103.2 F). The reference is now the median of the last six stored readings within three hours, and the allowed
+  change stops growing at three times the per 5 minute limit. A station is never locked out for more than three hours.
+- Spike filter: new dew point check (station.spike_max_dewpoint, default 95 F, settable on the sensor settings page).
+  When a report's temperature and humidity give a dew point above the limit (a wet or failing element reporting
+  120 F air at 99% humidity), neither the temperature nor the humidity is stored or uploaded.
 
 4.1.0 - WeatherParse (unreleased)
 =================================

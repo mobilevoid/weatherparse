@@ -93,6 +93,7 @@ if (isset($_SESSION['authenticated']) && $_SESSION['admin'] === true) {
         $config->station->filter_access = isset($_POST['station']['filter_access']) ? (bool)$_POST['station']['filter_access'] : ($config->station->filter_access ?? false);
         $config->station->spike_filter = isset($_POST['station']['spike_filter']) ? (bool)$_POST['station']['spike_filter'] : ($config->station->spike_filter ?? true);
         $config->station->spike_max_change = isset($_POST['station']['spike_max_change']) ? max(1.0, min(50.0, (float)$_POST['station']['spike_max_change'])) : ($config->station->spike_max_change ?? 10.0);
+        $config->station->spike_max_dewpoint = isset($_POST['station']['spike_max_dewpoint']) ? max(60.0, min(100.0, (float)$_POST['station']['spike_max_dewpoint'])) : ($config->station->spike_max_dewpoint ?? 95.0);
         $config->station->maintenance = isset($_POST['station']['maintenance']) ? (bool)$_POST['station']['maintenance'] : ($config->station->maintenance ?? false);
         $config->station->reverse_wind = isset($_POST['station']['reverse_wind']) ? (bool)$_POST['station']['reverse_wind'] : ($config->station->reverse_wind ?? false);
         $config->station->realtime = isset($_POST['station']['realtime']) ? (bool)$_POST['station']['realtime'] : ($config->station->realtime ?? false);
