@@ -137,18 +137,21 @@ function temperatureReadingAccepted(mysqli $conn, object $config, float $tempF, 
     }
 
     $readingTime = strtotime($timestamp);
+    $maxDewpointF = (float)($config->station->spike_max_dewpoint ?? SPIKE_FILTER_MAX_DEWPOINT_F);
     $sinceSql = mysqli_real_escape_string($conn, date('Y-m-d H:i:s', $readingTime - SPIKE_FILTER_WINDOW_MINUTES * 60));
     $untilSql = mysqli_real_escape_string($conn, $timestamp);
     $limit = SPIKE_FILTER_REFERENCE_READINGS * 2;
-    $result = mysqli_query($conn, "SELECT `tempF`, `timestamp` FROM `temperature` WHERE `timestamp` >= '$sinceSql' AND `timestamp` < '$untilSql' AND `tempF` IS NOT NULL ORDER BY `timestamp` DESC LIMIT $limit");
+    // Rows whose stored dew point is impossible (kept before the dew point rule existed, or with a lower limit set
+    // later) are not used as a reference
+    $dewpointSql = $maxDewpointF > 0 ? sprintf(" AND (`dewptf` IS NULL OR `dewptf` <= %.1F)", $maxDewpointF) : '';
+    $result = mysqli_query($conn, "SELECT `tempF`, `timestamp` FROM `temperature` WHERE `timestamp` >= '$sinceSql' AND `timestamp` < '$untilSql' AND `tempF` IS NOT NULL$dewpointSql ORDER BY `timestamp` DESC LIMIT $limit");
     $recent = [];
     while ($result && ($row = mysqli_fetch_assoc($result))) {
         $recent[] = [(float)$row['tempF'], strtotime($row['timestamp'])];
     }
 
     $decision = spikeFilterDecision($tempF, $humidity, $readingTime, $recent,
-        (float)($config->station->spike_max_change ?? 10),
-        (float)($config->station->spike_max_dewpoint ?? SPIKE_FILTER_MAX_DEWPOINT_F));
+        (float)($config->station->spike_max_change ?? 10), $maxDewpointF);
     if (!$decision['accepted']) {
         syslog(LOG_WARNING, sprintf("(ACCESS){%s}[FILTER]: Dropped temperature %.1f F (%s)", $label, $tempF, $decision['reason']));
     }
